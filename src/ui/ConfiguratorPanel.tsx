@@ -4,6 +4,7 @@ import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES,
 import { validateProjectCompatibility } from '../domain/compatibility'
 import type { MemorialProject, MonumentMaterial, MonumentShape, PortraitMode, SurfaceMaterialId } from '../domain/memorialProject'
 import { PROJECT_PRESETS } from '../domain/presets'
+import type { RenderFormat } from '../export/projectExports'
 import type { CameraPreset } from '../scene/CameraControls'
 
 interface Props {
@@ -16,7 +17,11 @@ interface Props {
   onSave: () => void
   onReset: () => void
   onExportJson: () => void
-  onExportRender: () => void
+  onExportRender: (format: RenderFormat) => void
+  onExportPdf: () => void
+  onImportProject: (file: File | null) => void
+  exportStatus: string | null
+  importStatus: string | null
   onShare: () => void
   shareStatus: string | null
   shareOmitsPortrait: boolean
@@ -33,6 +38,10 @@ export function ConfiguratorPanel({
   onReset,
   onExportJson,
   onExportRender,
+  onExportPdf,
+  onImportProject,
+  exportStatus,
+  importStatus,
   onShare,
   shareStatus,
   shareOmitsPortrait,
@@ -83,7 +92,7 @@ export function ConfiguratorPanel({
 
   return (
     <aside className="panel">
-      <div className="brand"><strong>КРЫМ МОНУМЕНТ</strong><span>Memorial 3D Studio / Gate 3B</span></div>
+      <div className="brand"><strong>КРЫМ МОНУМЕНТ</strong><span>Memorial 3D Studio / Gate 4</span></div>
 
       <section>
         <h2>Готовые решения</h2>
@@ -176,14 +185,25 @@ export function ConfiguratorPanel({
 
       {diagnostics.length > 0 && <section className="diagnostics"><h2>Проверка компоновки</h2>{diagnostics.map((item) => <div key={item.code} className={`diagnostic ${item.severity}`}><strong>{item.severity === 'error' ? 'Ошибка' : item.severity === 'warning' ? 'Проверьте' : 'Подсказка'}</strong><span>{item.message}</span></div>)}</section>}
 
+      <section>
+        <h2>Экспорт проекта</h2>
+        <div className="export-grid">
+          <button className="primary" onClick={() => onExportRender('png')}>HD PNG</button>
+          <button onClick={() => onExportRender('jpeg')}>HD JPEG</button>
+          <button onClick={onExportPdf}>PDF-спецификация</button>
+        </div>
+        {exportStatus && <p className="action-status">{exportStatus}</p>}
+      </section>
+
       <div className="actions">
-        <button className="primary" onClick={onExportRender}>Скачать 3D‑рендер PNG</button>
         <button onClick={onShare}>Поделиться интерактивным проектом</button>
         {shareStatus && <p className="share-status">{shareStatus}</p>}
         <p className="share-note">Ссылка доступна всем, у кого она есть. Данные проекта не шифруются.</p>
         {shareOmitsPortrait && <p className="share-note">Загруженное фото не включается в ссылку и остаётся только на этом устройстве.</p>}
         <button onClick={onSave}>Сохранить локально</button>
         <button onClick={onExportJson}>Скачать проект JSON</button>
+        <label className="project-import">Импортировать проект JSON<input type="file" accept="application/json,.json" onChange={(e: ChangeEvent<HTMLInputElement>) => onImportProject(e.target.files?.[0] ?? null)} /></label>
+        {importStatus && <p className="action-status">{importStatus}</p>}
         <button onClick={onReset}>Сбросить</button>
       </div>
       <p className="notice">Предварительная 3D‑визуализация. Финальный макет, размеры и стоимость подтверждаются специалистом.</p>

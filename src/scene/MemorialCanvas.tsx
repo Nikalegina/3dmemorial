@@ -10,17 +10,22 @@ export function MemorialCanvas({
   project,
   portraitUrl,
   cameraPreset,
+  highQualityRender,
   onCanvasReady,
 }: {
   project: MemorialProject
   portraitUrl: string | null
   cameraPreset: CameraPreset
+  highQualityRender: boolean
   onCanvasReady: (canvas: HTMLCanvasElement) => void
 }) {
+  const dpr: number | [number, number] = highQualityRender ? 2.5 : [1, 1.75]
+  const shadowSize = highQualityRender ? 4096 : 2048
+
   return (
     <Canvas
       shadows
-      dpr={[1, 1.75]}
+      dpr={dpr}
       camera={{ position: [2.35, 1.65, 3.2], fov: 42, near: 0.05, far: 60 }}
       gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true }}
       onCreated={({ gl }) => {
@@ -36,8 +41,8 @@ export function MemorialCanvas({
         position={[3.5, 6, 4]}
         intensity={2.6}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={shadowSize}
+        shadow-mapSize-height={shadowSize}
       />
       <directionalLight position={[-4, 2.5, -3]} intensity={0.5} />
       <MemorialEnvironment project={project} />

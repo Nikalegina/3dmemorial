@@ -11,7 +11,7 @@
 ## Gate 1 — production asset system
 - Asset registry, immutable IDs and versioning.
 - Asset ingestion pipeline, LOD, texture compression and license manifest enforcement.
-- 10–15 owned parametric monument profiles.
+- Expand owned parametric monument profiles toward 10–15 production-ready shapes.
 - Production PBR material library.
 
 ## Gate 2 — editor UX
@@ -19,18 +19,17 @@
 - Portrait crop/position controls and client-side upload guardrails.
 - Editable memorial inscriptions.
 - Camera presets and PNG render export.
-- Attachment anchors, snapping and advanced collision rules continue in the next bounded slice.
 
 ## Gate 3 — sharing and managed complex
 - 3A: privacy-safe stateless share links for compact project configuration.
 - 3B: managed memorial-complex component variants and placement rules.
-- Next: backend project store, secure portrait upload, durable read-only links and fork/copy flow.
-- Server-side preview thumbnails.
+- Backend project store, secure portrait upload and durable read-only links remain post-foundation work.
 
 ## Gate 4 — render/export
-- High-quality render mode.
-- PNG/JPEG and PDF project specification.
-- Optional queued server render if browser output is insufficient.
+- HD PNG and JPEG capture.
+- Downloadable PDF project specification with the current 3D view.
+- Versioned JSON project import through the canonical migration path.
+- Optional queued server render remains deferred until browser quality proves insufficient.
 
 ## Gate 5 — commercial integration
 - Website catalog deep links.
