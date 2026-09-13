@@ -38,3 +38,6 @@ h2 { font-size: 15px; margin: 0 0 13px; }
 .slider-field input { width: 100%; }
 .text-field input { width: 100%; border: 1px solid #cbc5bb; border-radius: 8px; padding: 9px; background: #fff; color: #181818; }
 .field-error { margin: 8px 0 0; padding: 8px 9px; border-radius: 8px; background: #fff1ef; border: 1px solid #d8a3a0; color: #8b3530; font-size: 12px; }
+.share-status, .share-note { margin: 0; padding: 8px 9px; border-radius: 8px; font-size: 11px; line-height: 1.4; }
+.share-status { background: #eef4ee; border: 1px solid #bfcdbf; color: #405340; }
+.share-note { background: #f5f1e8; border: 1px solid #d8ceb9; color: #655c4b; }

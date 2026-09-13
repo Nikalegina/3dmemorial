@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createDefaultProject, normalizeProject, serializeProject, type MemorialProject } from '../domain/memorialProject'
 import { loadLocalProject, saveLocalProject } from '../domain/projectStorage'
+import { createShareUrl, readSharedProject } from '../domain/shareProject'
 import { MemorialCanvas } from '../scene/MemorialCanvas'
 import type { CameraPreset } from '../scene/CameraControls'
 import { ConfiguratorPanel } from '../ui/ConfiguratorPanel'
@@ -9,11 +10,12 @@ const PORTRAIT_MAX_BYTES = 12 * 1024 * 1024
 const PORTRAIT_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export function App() {
-  const [project, setProject] = useState<MemorialProject>(() => loadLocalProject() ?? createDefaultProject())
+  const [project, setProject] = useState<MemorialProject>(() => readSharedProject(window.location.href) ?? loadLocalProject() ?? createDefaultProject())
   const [portraitUrl, setPortraitUrl] = useState<string | null>(null)
   const [portraitError, setPortraitError] = useState<string | null>(null)
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('perspective')
   const [renderCanvas, setRenderCanvas] = useState<HTMLCanvasElement | null>(null)
+  const [shareStatus, setShareStatus] = useState<string | null>(null)
   const normalized = useMemo(() => normalizeProject(project), [project])
 
   useEffect(() => () => {
@@ -65,6 +67,18 @@ export function App() {
     }, 'image/png')
   }
 
+  const shareProject = async () => {
+    const url = createShareUrl(normalized, window.location.href)
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard unavailable')
+      await navigator.clipboard.writeText(url)
+      setShareStatus(portraitUrl ? 'Ссылка скопирована. Фото не передаётся — только конфигурация.' : 'Ссылка на интерактивный проект скопирована.')
+    } catch {
+      window.prompt('Скопируйте ссылку на проект', url)
+      setShareStatus(portraitUrl ? 'Фото остаётся только на этом устройстве.' : 'Ссылка сформирована.')
+    }
+  }
+
   return (
     <main className="app-shell">
       <div className="viewport">
@@ -86,6 +100,9 @@ export function App() {
         onReset={() => { setProject(createDefaultProject()); onPortraitFile(null); setCameraPreset('perspective') }}
         onExportJson={exportJson}
         onExportRender={exportRender}
+        onShare={shareProject}
+        shareStatus={shareStatus}
+        shareOmitsPortrait={Boolean(portraitUrl)}
       />
     </main>
   )

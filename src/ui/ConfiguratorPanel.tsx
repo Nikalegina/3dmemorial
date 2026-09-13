@@ -16,6 +16,9 @@ interface Props {
   onReset: () => void
   onExportJson: () => void
   onExportRender: () => void
+  onShare: () => void
+  shareStatus: string | null
+  shareOmitsPortrait: boolean
 }
 
 export function ConfiguratorPanel({
@@ -29,6 +32,9 @@ export function ConfiguratorPanel({
   onReset,
   onExportJson,
   onExportRender,
+  onShare,
+  shareStatus,
+  shareOmitsPortrait,
 }: Props) {
   const diagnostics = validateProjectCompatibility(project)
   const patchMonument = (patch: Partial<MemorialProject['monument']>) =>
@@ -76,7 +82,7 @@ export function ConfiguratorPanel({
 
   return (
     <aside className="panel">
-      <div className="brand"><strong>КРЫМ МОНУМЕНТ</strong><span>Memorial 3D Studio / Gate 2</span></div>
+      <div className="brand"><strong>КРЫМ МОНУМЕНТ</strong><span>Memorial 3D Studio / Gate 3A</span></div>
 
       <section>
         <h2>Готовые решения</h2>
@@ -150,6 +156,10 @@ export function ConfiguratorPanel({
 
       <div className="actions">
         <button className="primary" onClick={onExportRender}>Скачать 3D‑рендер PNG</button>
+        <button onClick={onShare}>Поделиться интерактивным проектом</button>
+        {shareStatus && <p className="share-status">{shareStatus}</p>}
+        <p className="share-note">Ссылка доступна всем, у кого она есть. Данные проекта не шифруются.</p>
+        {shareOmitsPortrait && <p className="share-note">Загруженное фото не включается в ссылку и остаётся только на этом устройстве.</p>}
         <button onClick={onSave}>Сохранить локально</button>
         <button onClick={onExportJson}>Скачать проект JSON</button>
         <button onClick={onReset}>Сбросить</button>
