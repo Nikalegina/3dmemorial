@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { resolveStartupProject } from '../domain/catalogEntry'
 import {
   createDefaultProject,
   normalizeProject,
@@ -7,7 +8,7 @@ import {
   type MemorialProject,
 } from '../domain/memorialProject'
 import { loadLocalProject, saveLocalProject } from '../domain/projectStorage'
-import { createShareUrl, readSharedProject } from '../domain/shareProject'
+import { createShareUrl } from '../domain/shareProject'
 import { buildProjectPdf, canvasToBlob, type RenderFormat } from '../export/projectExports'
 import { MemorialCanvas } from '../scene/MemorialCanvas'
 import type { CameraPreset } from '../scene/CameraControls'
@@ -22,7 +23,8 @@ function nextFrame(): Promise<void> {
 }
 
 export function App() {
-  const [project, setProject] = useState<MemorialProject>(() => readSharedProject(window.location.href) ?? loadLocalProject() ?? createDefaultProject())
+  const [startup] = useState(() => resolveStartupProject(window.location.href, loadLocalProject()))
+  const [project, setProject] = useState<MemorialProject>(startup.project)
   const [portraitUrls, setPortraitUrls] = useState<Record<string, string>>({})
   const [portraitErrors, setPortraitErrors] = useState<Record<string, string | null>>({})
   const portraitUrlsRef = useRef<Record<string, string>>({})
@@ -166,7 +168,12 @@ export function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main
+      className="app-shell"
+      data-startup-source={startup.source}
+      data-preset-id={startup.context.presetId ?? undefined}
+      data-source-sku={startup.context.sourceSku ?? undefined}
+    >
       <div className="viewport">
         <MemorialCanvas
           project={normalized}
