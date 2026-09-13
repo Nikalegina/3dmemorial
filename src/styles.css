@@ -44,3 +44,8 @@ h2 { font-size: 15px; margin: 0 0 13px; }
 .action-status { margin-top: 8px; background: #eef2f5; border: 1px solid #c7d0d7; color: #40515e; }
 .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 @media (max-width: 460px) { .export-grid { grid-template-columns: 1fr; } }
+
+.layout-grid, .stele-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.stele-tabs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.secondary-action { width: 100%; margin-top: 10px; border: 1px solid #c7c0b5; border-radius: 9px; padding: 9px; background: #fff; color: #38342f; }
+.secondary-action:disabled { opacity: .45; cursor: not-allowed; }

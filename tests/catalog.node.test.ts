@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES, getMaterialDefinition, getShapeDefinition } from '../src/domain/catalog.ts'
 import { validateProjectCompatibility } from '../src/domain/compatibility.ts'
-import { createDefaultProject, normalizeProject } from '../src/domain/memorialProject.ts'
+import { createDefaultProject, normalizeProject, withLayout } from '../src/domain/memorialProject.ts'
 import { PROJECT_PRESETS } from '../src/domain/presets.ts'
 
 test('shape catalog has unique ids, fifteen owned profiles and expected families', () => {
@@ -28,26 +28,29 @@ test('material catalog separates expanded stone and glass surfaces', () => {
 
 test('normalization preserves compatible colored granite and rejects glass on stone construction', () => {
   const project = createDefaultProject()
-  project.monument.surfaceId = 'granite-green'
-  assert.equal(normalizeProject(project).monument.surfaceId, 'granite-green')
+  project.steles[0].monument.surfaceId = 'granite-green'
+  assert.equal(normalizeProject(project).steles[0].monument.surfaceId, 'granite-green')
 
-  project.monument.surfaceId = 'glass-smoke'
-  assert.equal(normalizeProject(project).monument.surfaceId, 'gabbro-polished')
+  project.steles[0].monument.surfaceId = 'glass-smoke'
+  assert.equal(normalizeProject(project).steles[0].monument.surfaceId, 'gabbro-polished')
 })
 
-test('presets create valid current-schema projects', () => {
+test('presets create valid current-schema projects including paired variants', () => {
   for (const preset of PROJECT_PRESETS) {
     const project = preset.create()
-    assert.equal(project.schemaVersion, 3)
+    assert.equal(project.schemaVersion, 4)
   }
+  assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'paired-classic' && preset.create().steles.length >= 2))
 })
 
-test('compatibility validation catches a monument that is too wide for its plot', () => {
-  const project = createDefaultProject()
+test('compatibility validation catches a composition that is too wide for its plot', () => {
+  const project = withLayout(createDefaultProject(), 'paired')
   project.plot.widthM = 1.2
-  project.monument.widthM = 1.1
+  project.steles[0].monument.widthM = 0.65
+  project.steles[1].monument.widthM = 0.65
+  project.layout.gapM = 0.2
   const diagnostics = validateProjectCompatibility(project)
-  assert.ok(diagnostics.some((item) => item.code === 'MONUMENT_TOO_WIDE_FOR_PLOT' && item.severity === 'error'))
+  assert.ok(diagnostics.some((item) => item.code === 'COMPOSITION_TOO_WIDE_FOR_PLOT' && item.severity === 'error'))
 })
 
 test('compatibility validation catches bench and table on the same side', () => {

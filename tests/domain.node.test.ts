@@ -1,39 +1,80 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDefaultProject, normalizeProject, parseProject, serializeProject } from '../src/domain/memorialProject.ts'
+import {
+  createDefaultProject,
+  normalizeProject,
+  parseProject,
+  serializeProject,
+  withLayout,
+} from '../src/domain/memorialProject.ts'
 
-test('default project has canonical schema version', () => {
+test('default project has canonical schema version and one stele', () => {
   const project = createDefaultProject()
-  assert.equal(project.schemaVersion, 3)
-  assert.equal(project.monument.material, 'gabbro')
-  assert.equal(project.monument.surfaceId, 'gabbro-polished')
+  assert.equal(project.schemaVersion, 4)
+  assert.equal(project.layout.type, 'single')
+  assert.equal(project.steles.length, 1)
+  assert.equal(project.steles[0].monument.material, 'gabbro')
+  assert.equal(project.steles[0].monument.surfaceId, 'gabbro-polished')
   assert.equal(project.border.enabled, false)
 })
 
-test('normalization clamps unsafe dimensions and portrait transforms', () => {
+test('normalization clamps unsafe stele dimensions and portrait transforms', () => {
   const project = createDefaultProject()
-  project.monument.widthM = 99
-  project.monument.depthM = -10
+  project.steles[0].monument.widthM = 99
+  project.steles[0].monument.depthM = -10
   project.plot.depthM = Number.NaN
-  project.portrait.zoom = 99
-  project.portrait.offsetX = -99
+  project.steles[0].portrait.zoom = 99
+  project.steles[0].portrait.offsetX = -99
+  project.layout.gapM = 99
   const normalized = normalizeProject(project)
-  assert.equal(normalized.monument.widthM, 2.5)
-  assert.equal(normalized.monument.depthM, 0.04)
+  assert.equal(normalized.steles[0].monument.widthM, 2.5)
+  assert.equal(normalized.steles[0].monument.depthM, 0.04)
   assert.equal(normalized.plot.depthM, 1.2)
-  assert.equal(normalized.portrait.zoom, 3)
-  assert.equal(normalized.portrait.offsetX, -1)
+  assert.equal(normalized.steles[0].portrait.zoom, 3)
+  assert.equal(normalized.steles[0].portrait.offsetX, -1)
+  assert.equal(normalized.layout.gapM, 0.8)
 })
 
-test('project serialization round-trips schema v3', () => {
-  const source = createDefaultProject()
-  source.monument.material = 'hybrid'
+test('project serialization round-trips schema v4 paired composition', () => {
+  const source = withLayout(createDefaultProject(), 'paired')
+  source.steles[0].monument.material = 'hybrid'
+  source.steles[0].inscription.name = 'ПЕРВЫЙ'
+  source.steles[1].inscription.name = 'ВТОРОЙ'
+  source.steles[1].monument.shape = 'book'
   source.fence.enabled = true
   source.fence.gateSide = 'left'
   source.border.enabled = true
-  source.inscription.name = 'ТЕСТОВОЕ ИМЯ'
   const parsed = parseProject(serializeProject(source))
   assert.deepEqual(parsed, source)
+})
+
+test('schema v3 migrates monument portrait and inscription into primary stele', () => {
+  const legacy = {
+    schemaVersion: 3,
+    projectId: 'LEGACY-V3',
+    plot: { widthM: 2, depthM: 2.4 },
+    monument: { shape: 'book', material: 'gabbro', surfaceId: 'granite-red', widthM: 0.72, heightM: 1.31, depthM: 0.1 },
+    portrait: { mode: 'bw', enabled: true, offsetX: 0.2, offsetY: -0.1, zoom: 1.4 },
+    inscription: { enabled: true, name: 'СОХРАНИТЬ ИМЯ', dates: '1940 — 2020', epitaph: 'Память' },
+    flowerBed: { enabled: true, styleId: 'closed-granite' },
+    plinth: { enabled: true, materialId: 'grey-granite' },
+    paving: { enabled: true, styleId: 'stone-grey' },
+    border: { enabled: true, styleId: 'granite-dark' },
+    fence: { enabled: true, styleId: 'classic-black', gateSide: 'left' },
+    bench: { enabled: true, styleId: 'wood-classic', side: 'right' },
+    table: { enabled: false, styleId: 'round-granite', side: 'left' },
+    vase: { enabled: true, styleId: 'classic-vase', placement: 'pair' },
+  }
+  const migrated = parseProject(JSON.stringify(legacy))
+  assert.equal(migrated.schemaVersion, 4)
+  assert.equal(migrated.layout.type, 'single')
+  assert.equal(migrated.steles.length, 1)
+  assert.equal(migrated.steles[0].monument.shape, 'book')
+  assert.equal(migrated.steles[0].monument.surfaceId, 'granite-red')
+  assert.equal(migrated.steles[0].portrait.zoom, 1.4)
+  assert.equal(migrated.steles[0].inscription.name, 'СОХРАНИТЬ ИМЯ')
+  assert.equal(migrated.border.enabled, true)
+  assert.equal(migrated.vase.placement, 'pair')
 })
 
 test('schema v1 migrates to current project model', () => {
@@ -47,10 +88,10 @@ test('schema v1 migrates to current project model', () => {
     fence: { enabled: false }, bench: { enabled: false }, table: { enabled: false }, vase: { enabled: false },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 3)
-  assert.equal(migrated.monument.surfaceId, 'glass-clear')
-  assert.equal(migrated.portrait.zoom, 1)
-  assert.equal(migrated.inscription.enabled, true)
+  assert.equal(migrated.schemaVersion, 4)
+  assert.equal(migrated.steles[0].monument.surfaceId, 'glass-clear')
+  assert.equal(migrated.steles[0].portrait.zoom, 1)
+  assert.equal(migrated.steles[0].inscription.enabled, true)
   assert.equal(migrated.paving.styleId, 'stone-grey')
   assert.equal(migrated.border.enabled, false)
 })
@@ -67,7 +108,7 @@ test('schema v2 migrates managed complex components without losing enabled state
     fence: { enabled: true }, bench: { enabled: true }, table: { enabled: false }, vase: { enabled: true },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 3)
+  assert.equal(migrated.schemaVersion, 4)
   assert.equal(migrated.fence.enabled, true)
   assert.equal(migrated.fence.styleId, 'classic-black')
   assert.equal(migrated.bench.side, 'right')
@@ -75,11 +116,19 @@ test('schema v2 migrates managed complex components without losing enabled state
   assert.equal(migrated.vase.styleId, 'classic-vase')
 })
 
-test('surface is normalized to construction-compatible material', () => {
+test('surface is normalized to construction-compatible material per stele', () => {
   const project = createDefaultProject()
-  project.monument.material = 'glass'
-  project.monument.surfaceId = 'gabbro-polished'
-  assert.equal(normalizeProject(project).monument.surfaceId, 'glass-clear')
+  project.steles[0].monument.material = 'glass'
+  project.steles[0].monument.surfaceId = 'gabbro-polished'
+  assert.equal(normalizeProject(project).steles[0].monument.surfaceId, 'glass-clear')
+})
+
+test('paired normalization guarantees a secondary stele', () => {
+  const project = createDefaultProject()
+  project.layout.type = 'paired'
+  const normalized = normalizeProject(project)
+  assert.equal(normalized.steles.length, 2)
+  assert.notEqual(normalized.steles[0].id, normalized.steles[1].id)
 })
 
 test('unsupported schema is rejected', () => {
