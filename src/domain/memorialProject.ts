@@ -1,10 +1,22 @@
+import type {
+  BenchStyleId,
+  BorderStyleId,
+  FenceStyleId,
+  FurnitureSide,
+  GateSide,
+  PavingStyleId,
+  TableStyleId,
+  VasePlacement,
+  VaseStyleId,
+} from './componentCatalog.ts'
+
 export type MonumentShape = 'rectangle' | 'arch' | 'slant' | 'wave' | 'heart' | 'muslim-arch'
 export type MonumentMaterial = 'gabbro' | 'glass' | 'hybrid'
 export type SurfaceMaterialId = 'gabbro-polished' | 'gabbro-matte' | 'glass-clear' | 'glass-frosted'
 export type PortraitMode = 'color' | 'bw' | 'engraving'
 
 export interface MemorialProject {
-  schemaVersion: 2
+  schemaVersion: 3
   projectId: string
   plot: {
     widthM: number
@@ -31,13 +43,14 @@ export interface MemorialProject {
     dates: string
     epitaph: string
   }
-  flowerBed: { enabled: boolean }
-  plinth: { enabled: boolean }
-  paving: { enabled: boolean }
-  fence: { enabled: boolean }
-  bench: { enabled: boolean }
-  table: { enabled: boolean }
-  vase: { enabled: boolean }
+  flowerBed: { enabled: boolean; styleId: 'open-granite' | 'closed-granite' }
+  plinth: { enabled: boolean; materialId: 'gabbro' | 'grey-granite' }
+  paving: { enabled: boolean; styleId: PavingStyleId }
+  border: { enabled: boolean; styleId: BorderStyleId }
+  fence: { enabled: boolean; styleId: FenceStyleId; gateSide: GateSide }
+  bench: { enabled: boolean; styleId: BenchStyleId; side: FurnitureSide }
+  table: { enabled: boolean; styleId: TableStyleId; side: FurnitureSide }
+  vase: { enabled: boolean; styleId: VaseStyleId; placement: VasePlacement }
 }
 
 interface LegacyProjectV1 {
@@ -55,10 +68,47 @@ interface LegacyProjectV1 {
   vase: { enabled: boolean }
 }
 
-export const PROJECT_SCHEMA_VERSION = 2 as const
+interface LegacyProjectV2 {
+  schemaVersion: 2
+  projectId: string
+  plot: MemorialProject['plot']
+  monument: MemorialProject['monument']
+  portrait: MemorialProject['portrait']
+  inscription: MemorialProject['inscription']
+  flowerBed: { enabled: boolean }
+  plinth: { enabled: boolean }
+  paving: { enabled: boolean }
+  fence: { enabled: boolean }
+  bench: { enabled: boolean }
+  table: { enabled: boolean }
+  vase: { enabled: boolean }
+}
+
+export const PROJECT_SCHEMA_VERSION = 3 as const
 
 function defaultSurfaceFor(material: MonumentMaterial): SurfaceMaterialId {
   return material === 'glass' ? 'glass-clear' : 'gabbro-polished'
+}
+
+function defaultManagedComponents(input: {
+  flowerBed: { enabled: boolean }
+  plinth: { enabled: boolean }
+  paving: { enabled: boolean }
+  fence: { enabled: boolean }
+  bench: { enabled: boolean }
+  table: { enabled: boolean }
+  vase: { enabled: boolean }
+}) {
+  return {
+    flowerBed: { enabled: input.flowerBed.enabled, styleId: 'open-granite' as const },
+    plinth: { enabled: input.plinth.enabled, materialId: 'gabbro' as const },
+    paving: { enabled: input.paving.enabled, styleId: 'stone-grey' as const },
+    border: { enabled: false, styleId: 'granite-dark' as const },
+    fence: { enabled: input.fence.enabled, styleId: 'classic-black' as const, gateSide: 'front' as const },
+    bench: { enabled: input.bench.enabled, styleId: 'wood-classic' as const, side: 'right' as const },
+    table: { enabled: input.table.enabled, styleId: 'round-granite' as const, side: 'left' as const },
+    vase: { enabled: input.vase.enabled, styleId: 'classic-vase' as const, placement: 'right' as const },
+  }
 }
 
 export function createDefaultProject(): MemorialProject {
@@ -81,13 +131,14 @@ export function createDefaultProject(): MemorialProject {
       dates: '19XX — 20XX',
       epitaph: '',
     },
-    flowerBed: { enabled: true },
-    plinth: { enabled: true },
-    paving: { enabled: true },
-    fence: { enabled: false },
-    bench: { enabled: false },
-    table: { enabled: false },
-    vase: { enabled: true },
+    flowerBed: { enabled: true, styleId: 'open-granite' },
+    plinth: { enabled: true, materialId: 'gabbro' },
+    paving: { enabled: true, styleId: 'stone-grey' },
+    border: { enabled: false, styleId: 'granite-dark' },
+    fence: { enabled: false, styleId: 'classic-black', gateSide: 'front' },
+    bench: { enabled: false, styleId: 'wood-classic', side: 'right' },
+    table: { enabled: false, styleId: 'round-granite', side: 'left' },
+    vase: { enabled: true, styleId: 'classic-vase', placement: 'right' },
   }
 }
 
@@ -122,6 +173,14 @@ export function normalizeProject(input: MemorialProject): MemorialProject {
   }
 }
 
+export function migrateProjectV2(input: LegacyProjectV2): MemorialProject {
+  return normalizeProject({
+    ...input,
+    schemaVersion: PROJECT_SCHEMA_VERSION,
+    ...defaultManagedComponents(input),
+  })
+}
+
 export function migrateProjectV1(input: LegacyProjectV1): MemorialProject {
   return normalizeProject({
     ...input,
@@ -142,6 +201,7 @@ export function migrateProjectV1(input: LegacyProjectV1): MemorialProject {
       dates: '19XX — 20XX',
       epitaph: '',
     },
+    ...defaultManagedComponents(input),
   })
 }
 
@@ -152,12 +212,13 @@ export function serializeProject(project: MemorialProject): string {
 export function parseProject(raw: string): MemorialProject {
   const parsed = JSON.parse(raw) as { schemaVersion?: unknown }
   if (parsed.schemaVersion === 1) return migrateProjectV1(parsed as LegacyProjectV1)
+  if (parsed.schemaVersion === 2) return migrateProjectV2(parsed as LegacyProjectV2)
   if (parsed.schemaVersion !== PROJECT_SCHEMA_VERSION) {
     throw new Error(`Unsupported project schema: ${String(parsed.schemaVersion)}`)
   }
 
   const current = parsed as unknown as Partial<MemorialProject>
-  if (!current.plot || !current.monument || !current.portrait || !current.inscription) {
+  if (!current.plot || !current.monument || !current.portrait || !current.inscription || !current.border) {
     throw new Error('Project is missing required sections')
   }
   return normalizeProject(current as MemorialProject)

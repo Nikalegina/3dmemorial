@@ -21,10 +21,10 @@
 - Camera presets and PNG render export.
 - Attachment anchors, snapping and advanced collision rules continue in the next bounded slice.
 
-## Gate 3 — persistence and sharing
-- Backend project store.
-- Upload security for portraits.
-- Shareable read-only links and fork/copy flow.
+## Gate 3 — sharing and managed complex
+- 3A: privacy-safe stateless share links for compact project configuration.
+- 3B: managed memorial-complex component variants and placement rules.
+- Next: backend project store, secure portrait upload, durable read-only links and fork/copy flow.
 - Server-side preview thumbnails.
 
 ## Gate 4 — render/export

@@ -1,5 +1,6 @@
 import type { ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from '../domain/catalog'
+import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import type { MemorialProject, MonumentMaterial, MonumentShape, PortraitMode, SurfaceMaterialId } from '../domain/memorialProject'
 import { PROJECT_PRESETS } from '../domain/presets'
@@ -40,8 +41,8 @@ export function ConfiguratorPanel({
   const patchMonument = (patch: Partial<MemorialProject['monument']>) =>
     onChange({ ...project, monument: { ...project.monument, ...patch } })
 
-  const toggle = (key: 'flowerBed' | 'plinth' | 'paving' | 'fence' | 'bench' | 'table' | 'vase') =>
-    onChange({ ...project, [key]: { enabled: !project[key].enabled } })
+  const toggle = (key: 'flowerBed' | 'plinth' | 'paving' | 'border' | 'fence' | 'bench' | 'table' | 'vase') =>
+    onChange({ ...project, [key]: { ...project[key], enabled: !project[key].enabled } })
 
   const numberField = (
     label: string,
@@ -82,7 +83,7 @@ export function ConfiguratorPanel({
 
   return (
     <aside className="panel">
-      <div className="brand"><strong>КРЫМ МОНУМЕНТ</strong><span>Memorial 3D Studio / Gate 3A</span></div>
+      <div className="brand"><strong>КРЫМ МОНУМЕНТ</strong><span>Memorial 3D Studio / Gate 3B</span></div>
 
       <section>
         <h2>Готовые решения</h2>
@@ -147,9 +148,30 @@ export function ConfiguratorPanel({
         <h2>Комплекс</h2>
         <div className="toggle-grid">
           {([
-            ['plinth', 'Цоколь'], ['flowerBed', 'Цветник'], ['paving', 'Плитка'], ['fence', 'Ограда'], ['bench', 'Лавка'], ['table', 'Стол'], ['vase', 'Ваза'],
+            ['plinth', 'Цоколь'], ['flowerBed', 'Цветник'], ['paving', 'Покрытие'], ['border', 'Бордюр'], ['fence', 'Ограда'], ['bench', 'Лавка'], ['table', 'Стол'], ['vase', 'Ваза'],
           ] as const).map(([key, label]) => <button className={project[key].enabled ? 'toggle active' : 'toggle'} key={key} onClick={() => toggle(key)}>{label}</button>)}
         </div>
+
+        {project.flowerBed.enabled && <label className="field"><span>Цветник</span><select value={project.flowerBed.styleId} onChange={(e) => onChange({ ...project, flowerBed: { ...project.flowerBed, styleId: e.target.value as MemorialProject['flowerBed']['styleId'] } })}><option value="open-granite">Открытый гранитный</option><option value="closed-granite">Закрытый гранитный</option></select></label>}
+        {project.plinth.enabled && <label className="field"><span>Цоколь</span><select value={project.plinth.materialId} onChange={(e) => onChange({ ...project, plinth: { ...project.plinth, materialId: e.target.value as MemorialProject['plinth']['materialId'] } })}><option value="gabbro">Чёрный габбро</option><option value="grey-granite">Серый гранит</option></select></label>}
+        {project.paving.enabled && <label className="field"><span>Покрытие</span><select value={project.paving.styleId} onChange={(e) => onChange({ ...project, paving: { ...project.paving, styleId: e.target.value as MemorialProject['paving']['styleId'] } })}>{PAVING_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>}
+        {project.border.enabled && <label className="field"><span>Бордюр</span><select value={project.border.styleId} onChange={(e) => onChange({ ...project, border: { ...project.border, styleId: e.target.value as MemorialProject['border']['styleId'] } })}>{BORDER_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>}
+        {project.fence.enabled && <>
+          <label className="field"><span>Ограда</span><select value={project.fence.styleId} onChange={(e) => onChange({ ...project, fence: { ...project.fence, styleId: e.target.value as MemorialProject['fence']['styleId'] } })}>{FENCE_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+          <label className="field"><span>Калитка</span><select value={project.fence.gateSide} onChange={(e) => onChange({ ...project, fence: { ...project.fence, gateSide: e.target.value as MemorialProject['fence']['gateSide'] } })}><option value="front">Спереди</option><option value="left">Слева</option><option value="right">Справа</option></select></label>
+        </>}
+        {project.bench.enabled && <>
+          <label className="field"><span>Лавка</span><select value={project.bench.styleId} onChange={(e) => onChange({ ...project, bench: { ...project.bench, styleId: e.target.value as MemorialProject['bench']['styleId'] } })}>{BENCH_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+          <label className="field"><span>Сторона лавки</span><select value={project.bench.side} onChange={(e) => onChange({ ...project, bench: { ...project.bench, side: e.target.value as MemorialProject['bench']['side'] } })}><option value="left">Слева</option><option value="right">Справа</option></select></label>
+        </>}
+        {project.table.enabled && <>
+          <label className="field"><span>Стол</span><select value={project.table.styleId} onChange={(e) => onChange({ ...project, table: { ...project.table, styleId: e.target.value as MemorialProject['table']['styleId'] } })}>{TABLE_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+          <label className="field"><span>Сторона стола</span><select value={project.table.side} onChange={(e) => onChange({ ...project, table: { ...project.table, side: e.target.value as MemorialProject['table']['side'] } })}><option value="left">Слева</option><option value="right">Справа</option></select></label>
+        </>}
+        {project.vase.enabled && <>
+          <label className="field"><span>Ваза</span><select value={project.vase.styleId} onChange={(e) => onChange({ ...project, vase: { ...project.vase, styleId: e.target.value as MemorialProject['vase']['styleId'] } })}>{VASE_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+          <label className="field"><span>Размещение ваз</span><select value={project.vase.placement} onChange={(e) => onChange({ ...project, vase: { ...project.vase, placement: e.target.value as MemorialProject['vase']['placement'] } })}><option value="left">Слева</option><option value="right">Справа</option><option value="pair">Пара</option></select></label>
+        </>}
       </section>
 
       {diagnostics.length > 0 && <section className="diagnostics"><h2>Проверка компоновки</h2>{diagnostics.map((item) => <div key={item.code} className={`diagnostic ${item.severity}`}><strong>{item.severity === 'error' ? 'Ошибка' : item.severity === 'warning' ? 'Проверьте' : 'Подсказка'}</strong><span>{item.message}</span></div>)}</section>}

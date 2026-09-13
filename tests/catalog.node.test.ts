@@ -26,7 +26,7 @@ test('material catalog separates stone and glass surfaces', () => {
 test('presets create valid current-schema projects', () => {
   for (const preset of PROJECT_PRESETS) {
     const project = preset.create()
-    assert.equal(project.schemaVersion, 2)
+    assert.equal(project.schemaVersion, 3)
   }
 })
 
@@ -36,4 +36,14 @@ test('compatibility validation catches a monument that is too wide for its plot'
   project.monument.widthM = 1.1
   const diagnostics = validateProjectCompatibility(project)
   assert.ok(diagnostics.some((item) => item.code === 'MONUMENT_TOO_WIDE_FOR_PLOT' && item.severity === 'error'))
+})
+
+test('compatibility validation catches bench and table on the same side', () => {
+  const project = createDefaultProject()
+  project.bench.enabled = true
+  project.table.enabled = true
+  project.bench.side = 'right'
+  project.table.side = 'right'
+  const diagnostics = validateProjectCompatibility(project)
+  assert.ok(diagnostics.some((item) => item.code === 'FURNITURE_SAME_SIDE'))
 })

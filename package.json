@@ -11,7 +11,7 @@
     "build": "tsc -b && vite build",
     "check": "tsc -b",
     "test": "vitest run",
-    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/share.node.test.ts",
+    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/share.node.test.ts",
     "validate:assets": "node scripts/validate-asset-registry.mjs"
   },
   "dependencies": {
