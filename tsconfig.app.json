@@ -22,7 +22,6 @@
     "allowImportingTsExtensions": true
   },
   "include": [
-    "src",
-    "tests"
+    "src"
   ]
 }
