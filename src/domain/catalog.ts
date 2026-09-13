@@ -1,4 +1,4 @@
-import type { MonumentShape, PortraitMode } from './memorialProject'
+import type { MonumentShape, PortraitMode, SurfaceMaterialId } from './memorialProject'
 
 export interface MonumentShapeDefinition {
   id: MonumentShape
@@ -9,7 +9,7 @@ export interface MonumentShapeDefinition {
 }
 
 export interface MaterialDefinition {
-  id: string
+  id: SurfaceMaterialId
   name: string
   kind: 'stone' | 'glass'
   color: string
@@ -38,10 +38,10 @@ export const MONUMENT_SHAPES: readonly MonumentShapeDefinition[] = [
 ] as const
 
 export const MATERIALS: readonly MaterialDefinition[] = [
-  { id: 'gabbro-polished', name: 'Габбро — полированный', kind: 'stone', color: '#111315', roughness: 0.18, metalness: 0.03, clearcoat: 0.48, clearcoatRoughness: 0.12 },
-  { id: 'gabbro-matte', name: 'Габбро — матовый', kind: 'stone', color: '#1b1c1d', roughness: 0.62, metalness: 0.01, clearcoat: 0.04, clearcoatRoughness: 0.7 },
-  { id: 'glass-clear', name: 'Стекло — прозрачное', kind: 'glass', color: '#dbe8e7', roughness: 0.06, transmission: 0.94, thickness: 0.08, ior: 1.45 },
-  { id: 'glass-frosted', name: 'Стекло — матовое', kind: 'glass', color: '#d7e2e1', roughness: 0.42, transmission: 0.72, thickness: 0.08, ior: 1.45 },
+  { id: 'gabbro-polished', name: 'Габбро — полированный', kind: 'stone', color: '#111315', roughness: 0.16, metalness: 0.02, clearcoat: 0.55, clearcoatRoughness: 0.1 },
+  { id: 'gabbro-matte', name: 'Габбро — матовый', kind: 'stone', color: '#1b1c1d', roughness: 0.64, metalness: 0.01, clearcoat: 0.04, clearcoatRoughness: 0.72 },
+  { id: 'glass-clear', name: 'Стекло — прозрачное', kind: 'glass', color: '#dbe8e7', roughness: 0.05, transmission: 0.96, thickness: 0.08, ior: 1.45 },
+  { id: 'glass-frosted', name: 'Стекло — матовое', kind: 'glass', color: '#d7e2e1', roughness: 0.38, transmission: 0.76, thickness: 0.08, ior: 1.45 },
 ] as const
 
 export const PORTRAIT_MODES: readonly PortraitModeDefinition[] = [
@@ -53,5 +53,11 @@ export const PORTRAIT_MODES: readonly PortraitModeDefinition[] = [
 export function getShapeDefinition(id: MonumentShape): MonumentShapeDefinition {
   const found = MONUMENT_SHAPES.find((item) => item.id === id)
   if (!found) throw new Error(`Unknown monument shape: ${id}`)
+  return found
+}
+
+export function getMaterialDefinition(id: SurfaceMaterialId): MaterialDefinition {
+  const found = MATERIALS.find((item) => item.id === id)
+  if (!found) throw new Error(`Unknown material: ${id}`)
   return found
 }

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { MONUMENT_SHAPES, PORTRAIT_MODES, getShapeDefinition } from '../src/domain/catalog.ts'
+import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES, getMaterialDefinition, getShapeDefinition } from '../src/domain/catalog.ts'
 import { validateProjectCompatibility } from '../src/domain/compatibility.ts'
 import { createDefaultProject } from '../src/domain/memorialProject.ts'
+import { PROJECT_PRESETS } from '../src/domain/presets.ts'
 
 test('shape catalog has unique ids and expected first-party families', () => {
   const ids = MONUMENT_SHAPES.map((item) => item.id)
@@ -14,6 +15,19 @@ test('shape catalog has unique ids and expected first-party families', () => {
 
 test('portrait modes include color, black-and-white and engraving preview', () => {
   assert.deepEqual(PORTRAIT_MODES.map((item) => item.id), ['color', 'bw', 'engraving'])
+})
+
+test('material catalog separates stone and glass surfaces', () => {
+  assert.ok(MATERIALS.some((item) => item.kind === 'stone'))
+  assert.ok(MATERIALS.some((item) => item.kind === 'glass'))
+  assert.equal(getMaterialDefinition('glass-clear').kind, 'glass')
+})
+
+test('presets create valid current-schema projects', () => {
+  for (const preset of PROJECT_PRESETS) {
+    const project = preset.create()
+    assert.equal(project.schemaVersion, 2)
+  }
 })
 
 test('compatibility validation catches a monument that is too wide for its plot', () => {

@@ -1,7 +1,7 @@
 # Gate 0 report — technical vertical slice
 
 ## Result
-IMPLEMENTED LOCALLY / READY FOR FIRST GITHUB PUSH ONCE THE EMPTY REPOSITORY EXISTS.
+INTEGRATED IN GITHUB / DRAFT PR #1 / UNMERGED.
 
 ## Delivered
 - React/TypeScript/Vite application shell.
@@ -19,7 +19,8 @@ IMPLEMENTED LOCALLY / READY FOR FIRST GITHUB PUSH ONCE THE EMPTY REPOSITORY EXIS
 ## Verification performed in the current environment
 - Domain smoke tests: PASS (4/4).
 - Repository file/tree review: PASS.
-- npm package installation / production build: BLOCKED by environment DNS (`EAI_AGAIN registry.npmjs.org`), not by a proven code defect.
+- Local npm package installation / production build was blocked by environment DNS (`EAI_AGAIN registry.npmjs.org`).
+- First GitHub CI run reached `setup-node` but failed before install because cache configuration required a lockfile. Gate 2 removes that bootstrap cache dependency so the next run can reach install/test/build.
 
 ## Acceptance gate before merge to main
 The first GitHub PR must prove:

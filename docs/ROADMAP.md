@@ -15,10 +15,11 @@
 - Production PBR material library.
 
 ## Gate 2 — editor UX
-- Structured steps and presets.
-- Attachment anchors, snapping and collision rules.
-- Typography and memorial symbols.
-- Camera presets and responsive mobile controls.
+- Structured presets and controlled surface materials.
+- Portrait crop/position controls and client-side upload guardrails.
+- Editable memorial inscriptions.
+- Camera presets and PNG render export.
+- Attachment anchors, snapping and advanced collision rules continue in the next bounded slice.
 
 ## Gate 3 — persistence and sharing
 - Backend project store.

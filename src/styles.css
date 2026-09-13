@@ -29,3 +29,12 @@ h2 { font-size: 15px; margin: 0 0 13px; }
 .diagnostic.warning { border-color: #d3b36e; background: #fffaf0; }
 .diagnostic.error { border-color: #ca8f8f; background: #fff5f4; }
 .diagnostic.info { border-color: #bbb7af; background: #f9f8f5; }
+.preset-grid { display: grid; gap: 8px; }
+.preset { display: grid; gap: 4px; text-align: left; border: 1px solid #d2ccc1; border-radius: 10px; background: #fff; padding: 10px 11px; color: #25231f; }
+.preset strong { font-size: 13px; }
+.preset span { font-size: 11px; line-height: 1.35; color: #777066; }
+.camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.slider-field, .text-field { display: grid; gap: 6px; margin: 10px 0; font-size: 12px; color: #565149; }
+.slider-field input { width: 100%; }
+.text-field input { width: 100%; border: 1px solid #cbc5bb; border-radius: 8px; padding: 9px; background: #fff; color: #181818; }
+.field-error { margin: 8px 0 0; padding: 8px 9px; border-radius: 8px; background: #fff1ef; border: 1px solid #d8a3a0; color: #8b3530; font-size: 12px; }

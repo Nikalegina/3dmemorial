@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
-import type { PortraitMode } from '../domain/memorialProject'
+import type { MemorialProject } from '../domain/memorialProject'
 
-function usePortraitTexture(url: string | null, mode: PortraitMode) {
+function usePortraitTexture(url: string | null, project: MemorialProject) {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null)
+  const { mode, offsetX, offsetY, zoom } = project.portrait
 
   useEffect(() => {
     if (!url) {
@@ -19,23 +20,29 @@ function usePortraitTexture(url: string | null, mode: PortraitMode) {
     image.onload = () => {
       if (cancelled) return
       const canvas = document.createElement('canvas')
-      const side = 1024
+      const side = 1536
       canvas.width = side
       canvas.height = side
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      const scale = Math.max(side / image.width, side / image.height)
+      const coverScale = Math.max(side / image.width, side / image.height)
+      const scale = coverScale * zoom
       const width = image.width * scale
       const height = image.height * scale
-      const x = (side - width) / 2
-      const y = (side - height) / 2
-      ctx.filter = mode === 'bw' ? 'grayscale(1) contrast(1.08)' : mode === 'engraving' ? 'grayscale(1) contrast(1.7) brightness(1.12)' : 'none'
+      const x = (side - width) / 2 + offsetX * side * 0.24
+      const y = (side - height) / 2 + offsetY * side * 0.24
+      ctx.filter = mode === 'bw'
+        ? 'grayscale(1) contrast(1.08)'
+        : mode === 'engraving'
+          ? 'grayscale(1) contrast(1.7) brightness(1.12)'
+          : 'none'
       ctx.drawImage(image, x, y, width, height)
 
       const next = new THREE.CanvasTexture(canvas)
       next.colorSpace = THREE.SRGBColorSpace
-      next.anisotropy = 4
+      next.anisotropy = 8
+      next.needsUpdate = true
       setTexture((current) => {
         current?.dispose()
         return next
@@ -46,7 +53,7 @@ function usePortraitTexture(url: string | null, mode: PortraitMode) {
     return () => {
       cancelled = true
     }
-  }, [url, mode])
+  }, [mode, offsetX, offsetY, url, zoom])
 
   useEffect(() => () => texture?.dispose(), [texture])
   return texture
@@ -54,27 +61,23 @@ function usePortraitTexture(url: string | null, mode: PortraitMode) {
 
 export function PortraitPlane({
   url,
-  mode,
-  width,
-  height,
+  project,
   z,
 }: {
   url: string | null
-  mode: PortraitMode
-  width: number
-  height: number
+  project: MemorialProject
   z: number
 }) {
-  const texture = usePortraitTexture(url, mode)
+  const texture = usePortraitTexture(url, project)
   if (!texture) return null
 
-  const portraitWidth = width * 0.48
-  const portraitHeight = Math.min(height * 0.42, portraitWidth * 1.18)
+  const portraitWidth = project.monument.widthM * 0.5
+  const portraitHeight = Math.min(project.monument.heightM * 0.42, portraitWidth * 1.18)
 
   return (
-    <mesh position={[0, height * 0.58, z]}>
+    <mesh position={[0, project.monument.heightM * 0.62, z]}>
       <planeGeometry args={[portraitWidth, portraitHeight]} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} />
+      <meshBasicMaterial map={texture} transparent toneMapped={false} depthWrite={false} />
     </mesh>
   )
 }
