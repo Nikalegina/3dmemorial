@@ -10,9 +10,35 @@ import type {
   VaseStyleId,
 } from './componentCatalog.ts'
 
-export type MonumentShape = 'rectangle' | 'arch' | 'slant' | 'wave' | 'heart' | 'muslim-arch'
+export type MonumentShape =
+  | 'rectangle'
+  | 'rounded-rectangle'
+  | 'arch'
+  | 'dome'
+  | 'slant'
+  | 'bevel-left'
+  | 'bevel-right'
+  | 'wave'
+  | 'ogee'
+  | 'shield'
+  | 'book'
+  | 'teardrop'
+  | 'heart'
+  | 'muslim-arch'
+  | 'muslim-dome'
+
 export type MonumentMaterial = 'gabbro' | 'glass' | 'hybrid'
-export type SurfaceMaterialId = 'gabbro-polished' | 'gabbro-matte' | 'glass-clear' | 'glass-frosted'
+export type SurfaceMaterialId =
+  | 'gabbro-polished'
+  | 'gabbro-matte'
+  | 'granite-grey'
+  | 'granite-red'
+  | 'granite-brown'
+  | 'granite-green'
+  | 'glass-clear'
+  | 'glass-frosted'
+  | 'glass-smoke'
+  | 'glass-bronze'
 export type PortraitMode = 'color' | 'bw' | 'engraving'
 
 export interface MemorialProject {
@@ -146,9 +172,10 @@ export function normalizeProject(input: MemorialProject): MemorialProject {
   const clamp = (value: number, min: number, max: number) =>
     Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
 
+  const stoneSurface = input.monument.surfaceId.startsWith('gabbro-') || input.monument.surfaceId.startsWith('granite-')
   const surfaceId = input.monument.material === 'glass'
     ? (input.monument.surfaceId.startsWith('glass-') ? input.monument.surfaceId : 'glass-clear')
-    : (input.monument.surfaceId.startsWith('gabbro-') ? input.monument.surfaceId : 'gabbro-polished')
+    : (stoneSurface ? input.monument.surfaceId : 'gabbro-polished')
 
   return {
     ...input,
