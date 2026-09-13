@@ -1,17 +1,19 @@
-# КРЫМ МОНУМЕНТ — Memorial 3D Studio
+# 3dmemorial
+
+Memorial 3D Studio.
 
 Independent web application for configuring and presenting complete memorial complexes.
 
-## Gate 0 scope
+## Current implemented scope
 
-The first vertical slice proves the core technical contract:
 - parametric monument geometry;
 - granite / glass / hybrid rendering;
-- user portrait preview in color or B&W;
-- configurable memorial-site components;
-- versioned project configuration;
-- local save and project JSON export;
-- desktop/mobile responsive shell.
+- portrait preview in color, B&W and engraving simulation;
+- editable memorial inscriptions;
+- managed paving, border, fence, bench, table, vase, flower-bed and plinth variants;
+- versioned project schema with migrations;
+- local save, JSON export, PNG render export and privacy-safe share links;
+- controlled asset registry and license validation.
 
 ## Local development
 
@@ -27,10 +29,11 @@ npm run test
 npm run build
 ```
 
-A dependency-free domain smoke test can also run with the repository Node runtime:
+Dependency-free domain verification:
 
 ```bash
 npm run test:domain
+npm run validate:assets
 ```
 
 ## Architecture boundaries
@@ -41,4 +44,4 @@ npm run test:domain
 - Do not persist a raw Three.js scene; persist versioned configuration.
 - Do not couple pricing to the editor until a canonical price/BOM authority exists.
 
-See `docs/ROADMAP.md` and `docs/ADR-0001-foundation.md`.
+See `docs/ROADMAP.md` and the gate reports under `docs/`.
