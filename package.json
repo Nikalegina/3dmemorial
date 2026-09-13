@@ -1,0 +1,34 @@
+{
+  "name": "krym-monument-3d",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "check": "tsc -b",
+    "test": "npm run test:domain && npm run validate:assets && npm run check:tests",
+    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/share.node.test.ts tests/projectSpec.node.test.ts tests/geometry.node.test.ts",
+    "validate:assets": "node scripts/validate-asset-registry.mjs",
+    "check:tests": "tsc -p tsconfig.tests.json --noEmit"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.7.0",
+    "pdf-lib": "^1.17.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "three": "0.186.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^5.9.2",
+    "vite": "^8.1.0"
+  }
+}

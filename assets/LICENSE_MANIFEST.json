@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "policy": "No runtime asset may be published without a recorded source, license and checksum.",
+  "assets": []
+}

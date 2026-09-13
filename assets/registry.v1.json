@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    {"id":"STELE-ARCH-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-RECT-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-ROUNDED-RECT-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-DOME-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-SLANT-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-BEVEL-LEFT-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-BEVEL-RIGHT-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-WAVE-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-OGEE-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-SHIELD-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-BOOK-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-TEARDROP-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-HEART-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-MUSLIM-ARCH-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"STELE-MUSLIM-DOME-PROC","type":"STELE_PROFILE","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"PAVING-PROC","type":"PAVING_FAMILY","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"BORDER-PROC","type":"BORDER_FAMILY","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"FENCE-PROC","type":"FENCE_FAMILY","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"BENCH-PROC","type":"BENCH_FAMILY","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"TABLE-PROC","type":"TABLE_FAMILY","source":"internal-procedural","license":"OWNED","status":"ACTIVE"},
+    {"id":"VASE-PROC","type":"VASE_FAMILY","source":"internal-procedural","license":"OWNED","status":"ACTIVE"}
+  ]
+}

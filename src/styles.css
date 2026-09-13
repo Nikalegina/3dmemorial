@@ -1,0 +1,46 @@
+:root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #181818; background: #d7d3ca; font-synthesis: none; }
+* { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; margin: 0; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.app-shell { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 380px; background: #d7d3ca; }
+.viewport { position: sticky; top: 0; height: 100vh; min-height: 520px; }
+.panel { background: #f7f5f0; border-left: 1px solid rgba(0,0,0,.1); padding: 26px 22px 32px; overflow: auto; max-height: 100vh; }
+.brand { display: grid; gap: 5px; padding-bottom: 18px; border-bottom: 1px solid #d8d3ca; }
+.brand strong { letter-spacing: .045em; }
+.brand span { color: #756f65; font-size: 13px; }
+section { padding: 18px 0; border-bottom: 1px solid #ddd8ce; }
+h2 { font-size: 15px; margin: 0 0 13px; }
+.field { display: grid; grid-template-columns: 1fr 132px; gap: 12px; align-items: center; margin: 9px 0; font-size: 13px; }
+.field input, .field select { width: 100%; border: 1px solid #cbc5bb; border-radius: 8px; padding: 8px 9px; background: white; color: #181818; }
+.upload, .project-import { margin-top: 12px; display: flex; justify-content: center; padding: 10px; border: 1px dashed #9e978b; border-radius: 9px; font-size: 13px; background: #fff; cursor: pointer; }
+.upload input, .project-import input { display: none; }
+.toggle-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.toggle { border: 1px solid #cec8be; border-radius: 9px; padding: 9px; background: white; color: #4a4741; }
+.toggle.active { background: #1d1d1d; color: white; border-color: #1d1d1d; }
+.actions { display: grid; gap: 8px; padding-top: 18px; }
+.actions button, .export-grid button { border: 1px solid #c7c0b5; border-radius: 9px; padding: 10px; background: white; }
+.actions .primary, .export-grid .primary { background: #1b1b1b; color: white; border-color: #1b1b1b; }
+.notice { color: #7c756b; font-size: 11px; line-height: 1.5; margin-top: 14px; }
+@media (max-width: 900px) { .app-shell { grid-template-columns: 1fr; grid-template-rows: 58vh auto; } .viewport { position: relative; height: 58vh; min-height: 380px; } .panel { max-height: none; border-left: 0; border-top: 1px solid rgba(0,0,0,.1); } }
+.diagnostics { display: grid; gap: 8px; }
+.diagnostic { display: grid; gap: 3px; padding: 9px 10px; border: 1px solid #d6d0c5; border-radius: 8px; background: #fff; font-size: 12px; line-height: 1.35; }
+.diagnostic strong { font-size: 11px; text-transform: uppercase; letter-spacing: .035em; }
+.diagnostic.warning { border-color: #d3b36e; background: #fffaf0; }
+.diagnostic.error { border-color: #ca8f8f; background: #fff5f4; }
+.diagnostic.info { border-color: #bbb7af; background: #f9f8f5; }
+.preset-grid { display: grid; gap: 8px; }
+.preset { display: grid; gap: 4px; text-align: left; border: 1px solid #d2ccc1; border-radius: 10px; background: #fff; padding: 10px 11px; color: #25231f; }
+.preset strong { font-size: 13px; }
+.preset span { font-size: 11px; line-height: 1.35; color: #777066; }
+.camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.slider-field, .text-field { display: grid; gap: 6px; margin: 10px 0; font-size: 12px; color: #565149; }
+.slider-field input { width: 100%; }
+.text-field input { width: 100%; border: 1px solid #cbc5bb; border-radius: 8px; padding: 9px; background: #fff; color: #181818; }
+.field-error { margin: 8px 0 0; padding: 8px 9px; border-radius: 8px; background: #fff1ef; border: 1px solid #d8a3a0; color: #8b3530; font-size: 12px; }
+.share-status, .share-note, .action-status { margin: 0; padding: 8px 9px; border-radius: 8px; font-size: 11px; line-height: 1.4; }
+.share-status { background: #eef4ee; border: 1px solid #bfcdbf; color: #405340; }
+.share-note { background: #f5f1e8; border: 1px solid #d8ceb9; color: #655c4b; }
+.action-status { margin-top: 8px; background: #eef2f5; border: 1px solid #c7d0d7; color: #40515e; }
+.export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 460px) { .export-grid { grid-template-columns: 1fr; } }
