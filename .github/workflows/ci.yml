@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,3 +26,70 @@ jobs:
           fi
       - run: npm run test
       - run: npm run build
+
+      - name: Browser smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p browser-artifacts
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/3dmemorial-vite.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+
+          READY=0
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then
+              READY=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$READY" -ne 1 ]; then
+            cat /tmp/3dmemorial-vite.log
+            exit 1
+          fi
+
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome/Chromium is not available on the runner"
+            exit 1
+          fi
+
+          FLAGS=(
+            --headless=new
+            --no-sandbox
+            --disable-dev-shm-usage
+            --enable-unsafe-swiftshader
+            --use-angle=swiftshader
+            --window-size=1440,1100
+            --virtual-time-budget=4000
+          )
+
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "http://127.0.0.1:4173/"             > browser-artifacts/single-dom.html
+
+          grep -q 'data-startup-source="default"' browser-artifacts/single-dom.html
+
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/single.png             "http://127.0.0.1:4173/"
+
+          PAIRED_URL="http://127.0.0.1:4173/?preset=paired-glass&sourceSku=KM-PAIR-001"
+
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "$PAIRED_URL"             > browser-artifacts/paired-dom.html
+
+          grep -q 'data-startup-source="catalog"' browser-artifacts/paired-dom.html
+          grep -q 'data-preset-id="paired-glass"' browser-artifacts/paired-dom.html
+          grep -q 'data-source-sku="KM-PAIR-001"' browser-artifacts/paired-dom.html
+
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/paired-glass.png             "$PAIRED_URL"
+
+          test -s browser-artifacts/single.png
+          test -s browser-artifacts/paired-glass.png
+
+      - name: Upload browser smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke
+          path: browser-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
