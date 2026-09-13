@@ -1,4 +1,4 @@
-import { getCompositionWidth, getVisibleSteles, type MemorialProject } from './memorialProject'
+import { getCompositionWidth, getVisibleSteles, type MemorialProject } from './memorialProject.ts'
 
 export interface ProjectDiagnostic {
   severity: 'info' | 'warning' | 'error'
