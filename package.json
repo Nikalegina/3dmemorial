@@ -10,9 +10,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "check": "tsc -b",
-    "test": "npm run test:domain && npm run validate:assets",
+    "test": "npm run test:domain && npm run validate:assets && npm run check:tests",
     "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/share.node.test.ts",
-    "validate:assets": "node scripts/validate-asset-registry.mjs"
+    "validate:assets": "node scripts/validate-asset-registry.mjs",
+    "check:tests": "tsc -p tsconfig.tests.json --noEmit"
   },
   "dependencies": {
     "@react-three/fiber": "9.7.0",
@@ -26,6 +27,7 @@
     "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "^5.9.2",
-    "vite": "^8.1.0"
+    "vite": "^8.1.0",
+    "@types/node": "^22.0.0"
   }
 }
