@@ -63,24 +63,24 @@ jobs:
             --enable-unsafe-swiftshader
             --use-angle=swiftshader
             --window-size=1440,1100
-            --virtual-time-budget=5000
+            --virtual-time-budget=4000
           )
 
-          "$CHROME" "${FLAGS[@]}"             --dump-dom             "http://127.0.0.1:4173/"             > browser-artifacts/single-dom.html
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "http://127.0.0.1:4173/"             > browser-artifacts/single-dom.html
 
           grep -q 'data-startup-source="default"' browser-artifacts/single-dom.html
 
-          "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/single.png             "http://127.0.0.1:4173/"
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/single.png             "http://127.0.0.1:4173/"
 
           PAIRED_URL="http://127.0.0.1:4173/?preset=paired-glass&sourceSku=KM-PAIR-001"
 
-          "$CHROME" "${FLAGS[@]}"             --dump-dom             "$PAIRED_URL"             > browser-artifacts/paired-dom.html
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "$PAIRED_URL"             > browser-artifacts/paired-dom.html
 
           grep -q 'data-startup-source="catalog"' browser-artifacts/paired-dom.html
           grep -q 'data-preset-id="paired-glass"' browser-artifacts/paired-dom.html
           grep -q 'data-source-sku="KM-PAIR-001"' browser-artifacts/paired-dom.html
 
-          "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/paired-glass.png             "$PAIRED_URL"
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/paired-glass.png             "$PAIRED_URL"
 
           test -s browser-artifacts/single.png
           test -s browser-artifacts/paired-glass.png
