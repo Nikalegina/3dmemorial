@@ -1,4 +1,4 @@
-import type { MemorialProject } from './memorialProject'
+import { getCompositionWidth, getVisibleSteles, type MemorialProject } from './memorialProject.ts'
 
 export interface ProjectDiagnostic {
   severity: 'info' | 'warning' | 'error'
@@ -8,12 +8,22 @@ export interface ProjectDiagnostic {
 
 export function validateProjectCompatibility(project: MemorialProject): ProjectDiagnostic[] {
   const diagnostics: ProjectDiagnostic[] = []
+  const visibleSteles = getVisibleSteles(project)
+  const compositionWidth = getCompositionWidth(project)
 
-  if (project.monument.widthM > project.plot.widthM * 0.72) {
+  if (compositionWidth > project.plot.widthM * 0.82) {
     diagnostics.push({
       severity: 'error',
-      code: 'MONUMENT_TOO_WIDE_FOR_PLOT',
-      message: 'Ширина памятника слишком велика для указанного участка.',
+      code: 'COMPOSITION_TOO_WIDE_FOR_PLOT',
+      message: 'Общая ширина композиции слишком велика для указанного участка.',
+    })
+  }
+
+  if (project.layout.type === 'paired' && visibleSteles.length !== 2) {
+    diagnostics.push({
+      severity: 'error',
+      code: 'PAIRED_LAYOUT_INCOMPLETE',
+      message: 'Для парной композиции нужны две стелы.',
     })
   }
 
@@ -33,20 +43,22 @@ export function validateProjectCompatibility(project: MemorialProject): ProjectD
     })
   }
 
-  if (project.vase.enabled && project.vase.placement === 'pair' && project.monument.widthM < 0.55) {
+  if (project.vase.enabled && project.vase.placement === 'pair' && compositionWidth < 0.55) {
     diagnostics.push({
       severity: 'warning',
       code: 'VASE_PAIR_TIGHT',
-      message: 'Для двух ваз основание памятника может быть слишком узким.',
+      message: 'Для двух ваз основание композиции может быть слишком узким.',
     })
   }
 
-  if (project.monument.material === 'glass' && project.portrait.mode === 'engraving') {
-    diagnostics.push({
-      severity: 'info',
-      code: 'GLASS_ENGRAVING_PREVIEW',
-      message: 'Для стекла рекомендуется сравнить гравировку с цветной фотопечатью.',
-    })
+  for (const stele of visibleSteles) {
+    if (stele.monument.material === 'glass' && stele.portrait.mode === 'engraving') {
+      diagnostics.push({
+        severity: 'info',
+        code: `GLASS_ENGRAVING_PREVIEW_${stele.id}`,
+        message: 'Для стекла рекомендуется сравнить гравировку с цветной фотопечатью.',
+      })
+    }
   }
 
   if (!project.paving.enabled && project.plinth.enabled) {

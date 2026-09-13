@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createDefaultProject } from '../src/domain/memorialProject.ts'
+import { createDefaultProject, withLayout } from '../src/domain/memorialProject.ts'
 
-// Browser btoa/atob are available in supported Node 22 CI.
 const { createShareUrl, readSharedProject, clearSharedProjectFromUrl } = await import('../src/domain/shareProject.ts')
 
-test('share URL round-trips the current project configuration', () => {
-  const project = createDefaultProject()
-  project.inscription.name = 'ИВАНОВ ИВАН'
-  project.monument.material = 'glass'
-  project.monument.surfaceId = 'glass-clear'
+test('share URL round-trips paired current project configuration', () => {
+  const project = withLayout(createDefaultProject(), 'paired')
+  project.steles[0].inscription.name = 'ИВАНОВ ИВАН'
+  project.steles[0].monument.material = 'glass'
+  project.steles[0].monument.surfaceId = 'glass-clear'
+  project.steles[1].inscription.name = 'ИВАНОВА МАРИЯ'
+  project.steles[1].monument.shape = 'heart'
   const url = createShareUrl(project, 'https://example.test/constructor')
   const restored = readSharedProject(url)
   assert.deepEqual(restored, project)

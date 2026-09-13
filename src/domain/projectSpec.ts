@@ -1,6 +1,6 @@
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from './catalog.ts'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
-import type { MemorialProject } from './memorialProject.ts'
+import { getVisibleSteles, type MemorialProject } from './memorialProject.ts'
 
 export interface ProjectSpecRow {
   label: string
@@ -19,7 +19,7 @@ export interface ProjectSpecification {
   disclaimer: string
 }
 
-const constructionNames: Record<MemorialProject['monument']['material'], string> = {
+const constructionNames: Record<string, string> = {
   gabbro: 'Гранит',
   glass: 'Стекло',
   hybrid: 'Гранит + стекло',
@@ -34,6 +34,36 @@ function enabled(value: boolean): string {
 }
 
 export function buildProjectSpecification(project: MemorialProject): ProjectSpecification {
+  const visibleSteles = getVisibleSteles(project)
+  const multi = visibleSteles.length > 1
+  const steleSections = visibleSteles.flatMap((stele, index): ProjectSpecSection[] => {
+    const suffix = multi ? ` ${index + 1}` : ''
+    return [
+      {
+        title: `Памятник${suffix}`,
+        rows: [
+          { label: 'Форма', value: catalogName(MONUMENT_SHAPES, stele.monument.shape) },
+          { label: 'Исполнение', value: constructionNames[stele.monument.material] ?? stele.monument.material },
+          { label: 'Поверхность', value: catalogName(MATERIALS, stele.monument.surfaceId) },
+          {
+            label: 'Размеры',
+            value: `${stele.monument.widthM.toFixed(2)} × ${stele.monument.heightM.toFixed(2)} × ${stele.monument.depthM.toFixed(2)} м`,
+          },
+        ],
+      },
+      {
+        title: `Портрет и надпись${suffix}`,
+        rows: [
+          { label: 'Портрет', value: enabled(stele.portrait.enabled) },
+          { label: 'Режим портрета', value: catalogName(PORTRAIT_MODES, stele.portrait.mode) },
+          { label: 'Имя', value: stele.inscription.name || '—' },
+          { label: 'Даты', value: stele.inscription.dates || '—' },
+          { label: 'Эпитафия', value: stele.inscription.epitaph || '—' },
+        ],
+      },
+    ]
+  })
+
   const complexRows: ProjectSpecRow[] = [
     { label: 'Цоколь', value: project.plinth.enabled ? (project.plinth.materialId === 'gabbro' ? 'Чёрный габбро' : 'Серый гранит') : 'Нет' },
     { label: 'Цветник', value: project.flowerBed.enabled ? (project.flowerBed.styleId === 'open-granite' ? 'Открытый гранитный' : 'Закрытый гранитный') : 'Нет' },
@@ -53,30 +83,10 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
         title: 'Участок',
         rows: [
           { label: 'Размер', value: `${project.plot.widthM.toFixed(2)} × ${project.plot.depthM.toFixed(2)} м` },
+          { label: 'Композиция', value: project.layout.type === 'single' ? 'Одиночная' : project.layout.type === 'paired' ? 'Парная' : 'Семейная' },
         ],
       },
-      {
-        title: 'Памятник',
-        rows: [
-          { label: 'Форма', value: catalogName(MONUMENT_SHAPES, project.monument.shape) },
-          { label: 'Исполнение', value: constructionNames[project.monument.material] },
-          { label: 'Поверхность', value: catalogName(MATERIALS, project.monument.surfaceId) },
-          {
-            label: 'Размеры',
-            value: `${project.monument.widthM.toFixed(2)} × ${project.monument.heightM.toFixed(2)} × ${project.monument.depthM.toFixed(2)} м`,
-          },
-        ],
-      },
-      {
-        title: 'Портрет и надпись',
-        rows: [
-          { label: 'Портрет', value: enabled(project.portrait.enabled) },
-          { label: 'Режим портрета', value: catalogName(PORTRAIT_MODES, project.portrait.mode) },
-          { label: 'Имя', value: project.inscription.name || '—' },
-          { label: 'Даты', value: project.inscription.dates || '—' },
-          { label: 'Эпитафия', value: project.inscription.epitaph || '—' },
-        ],
-      },
+      ...steleSections,
       {
         title: 'Мемориальный комплекс',
         rows: complexRows,

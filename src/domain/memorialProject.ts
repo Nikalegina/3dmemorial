@@ -40,34 +40,50 @@ export type SurfaceMaterialId =
   | 'glass-smoke'
   | 'glass-bronze'
 export type PortraitMode = 'color' | 'bw' | 'engraving'
+export type LayoutType = 'single' | 'paired' | 'family'
+
+export interface MonumentConfig {
+  shape: MonumentShape
+  material: MonumentMaterial
+  surfaceId: SurfaceMaterialId
+  widthM: number
+  heightM: number
+  depthM: number
+}
+
+export interface PortraitConfig {
+  mode: PortraitMode
+  enabled: boolean
+  offsetX: number
+  offsetY: number
+  zoom: number
+}
+
+export interface InscriptionConfig {
+  enabled: boolean
+  name: string
+  dates: string
+  epitaph: string
+}
+
+export interface MemorialStele {
+  id: string
+  monument: MonumentConfig
+  portrait: PortraitConfig
+  inscription: InscriptionConfig
+}
 
 export interface MemorialProject {
-  schemaVersion: 3
+  schemaVersion: 4
   projectId: string
+  layout: {
+    type: LayoutType
+    gapM: number
+  }
+  steles: MemorialStele[]
   plot: {
     widthM: number
     depthM: number
-  }
-  monument: {
-    shape: MonumentShape
-    material: MonumentMaterial
-    surfaceId: SurfaceMaterialId
-    widthM: number
-    heightM: number
-    depthM: number
-  }
-  portrait: {
-    mode: PortraitMode
-    enabled: boolean
-    offsetX: number
-    offsetY: number
-    zoom: number
-  }
-  inscription: {
-    enabled: boolean
-    name: string
-    dates: string
-    epitaph: string
   }
   flowerBed: { enabled: boolean; styleId: 'open-granite' | 'closed-granite' }
   plinth: { enabled: boolean; materialId: 'gabbro' | 'grey-granite' }
@@ -83,8 +99,8 @@ interface LegacyProjectV1 {
   schemaVersion: 1
   projectId: string
   plot: MemorialProject['plot']
-  monument: Omit<MemorialProject['monument'], 'surfaceId'>
-  portrait: Pick<MemorialProject['portrait'], 'mode' | 'enabled'>
+  monument: Omit<MonumentConfig, 'surfaceId'>
+  portrait: Pick<PortraitConfig, 'mode' | 'enabled'>
   flowerBed: { enabled: boolean }
   plinth: { enabled: boolean }
   paving: { enabled: boolean }
@@ -98,9 +114,9 @@ interface LegacyProjectV2 {
   schemaVersion: 2
   projectId: string
   plot: MemorialProject['plot']
-  monument: MemorialProject['monument']
-  portrait: MemorialProject['portrait']
-  inscription: MemorialProject['inscription']
+  monument: MonumentConfig
+  portrait: PortraitConfig
+  inscription: InscriptionConfig
   flowerBed: { enabled: boolean }
   plinth: { enabled: boolean }
   paving: { enabled: boolean }
@@ -110,10 +126,92 @@ interface LegacyProjectV2 {
   vase: { enabled: boolean }
 }
 
-export const PROJECT_SCHEMA_VERSION = 3 as const
+interface LegacyProjectV3 {
+  schemaVersion: 3
+  projectId: string
+  plot: MemorialProject['plot']
+  monument: MonumentConfig
+  portrait: PortraitConfig
+  inscription: InscriptionConfig
+  flowerBed: MemorialProject['flowerBed']
+  plinth: MemorialProject['plinth']
+  paving: MemorialProject['paving']
+  border: MemorialProject['border']
+  fence: MemorialProject['fence']
+  bench: MemorialProject['bench']
+  table: MemorialProject['table']
+  vase: MemorialProject['vase']
+}
+
+export const PROJECT_SCHEMA_VERSION = 4 as const
+export const MAX_SUPPORTED_STELES = 6
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
+}
 
 function defaultSurfaceFor(material: MonumentMaterial): SurfaceMaterialId {
   return material === 'glass' ? 'glass-clear' : 'gabbro-polished'
+}
+
+function normalizeSurface(material: MonumentMaterial, surfaceId: SurfaceMaterialId): SurfaceMaterialId {
+  const stoneSurface = surfaceId.startsWith('gabbro-') || surfaceId.startsWith('granite-')
+  return material === 'glass'
+    ? (surfaceId.startsWith('glass-') ? surfaceId : 'glass-clear')
+    : (stoneSurface ? surfaceId : 'gabbro-polished')
+}
+
+export function createDefaultStele(id = 'primary'): MemorialStele {
+  return {
+    id,
+    monument: {
+      shape: 'arch',
+      material: 'gabbro',
+      surfaceId: 'gabbro-polished',
+      widthM: 0.65,
+      heightM: 1.25,
+      depthM: 0.09,
+    },
+    portrait: { mode: 'color', enabled: true, offsetX: 0, offsetY: 0, zoom: 1 },
+    inscription: {
+      enabled: true,
+      name: 'ИМЯ ФАМИЛИЯ',
+      dates: '19XX — 20XX',
+      epitaph: '',
+    },
+  }
+}
+
+function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele {
+  const id = typeof input.id === 'string' && input.id.trim() ? input.id.trim() : fallbackId
+  return {
+    ...input,
+    id,
+    monument: {
+      ...input.monument,
+      surfaceId: normalizeSurface(input.monument.material, input.monument.surfaceId),
+      widthM: clamp(input.monument.widthM, 0.3, 2.5),
+      heightM: clamp(input.monument.heightM, 0.5, 3),
+      depthM: clamp(input.monument.depthM, 0.04, 0.4),
+    },
+    portrait: {
+      ...input.portrait,
+      offsetX: clamp(input.portrait.offsetX, -1, 1),
+      offsetY: clamp(input.portrait.offsetY, -1, 1),
+      zoom: clamp(input.portrait.zoom, 1, 3),
+    },
+  }
+}
+
+function uniqueSteleIds(steles: MemorialStele[]): MemorialStele[] {
+  const used = new Set<string>()
+  return steles.map((stele, index) => {
+    let id = stele.id
+    if (!id || used.has(id)) id = `stele-${index + 1}`
+    while (used.has(id)) id = `${id}-copy`
+    used.add(id)
+    return { ...stele, id }
+  })
 }
 
 function defaultManagedComponents(input: {
@@ -141,22 +239,9 @@ export function createDefaultProject(): MemorialProject {
   return {
     schemaVersion: PROJECT_SCHEMA_VERSION,
     projectId: 'LOCAL-DRAFT',
+    layout: { type: 'single', gapM: 0.16 },
+    steles: [createDefaultStele('primary')],
     plot: { widthM: 2, depthM: 2.4 },
-    monument: {
-      shape: 'arch',
-      material: 'gabbro',
-      surfaceId: 'gabbro-polished',
-      widthM: 0.65,
-      heightM: 1.25,
-      depthM: 0.09,
-    },
-    portrait: { mode: 'color', enabled: true, offsetX: 0, offsetY: 0, zoom: 1 },
-    inscription: {
-      enabled: true,
-      name: 'ИМЯ ФАМИЛИЯ',
-      dates: '19XX — 20XX',
-      epitaph: '',
-    },
     flowerBed: { enabled: true, styleId: 'open-granite' },
     plinth: { enabled: true, materialId: 'gabbro' },
     paving: { enabled: true, styleId: 'stone-grey' },
@@ -169,49 +254,113 @@ export function createDefaultProject(): MemorialProject {
 }
 
 export function normalizeProject(input: MemorialProject): MemorialProject {
-  const clamp = (value: number, min: number, max: number) =>
-    Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
+  let steles = (Array.isArray(input.steles) ? input.steles : [])
+    .slice(0, MAX_SUPPORTED_STELES)
+    .map((stele, index) => normalizeStele(stele, `stele-${index + 1}`))
 
-  const stoneSurface = input.monument.surfaceId.startsWith('gabbro-') || input.monument.surfaceId.startsWith('granite-')
-  const surfaceId = input.monument.material === 'glass'
-    ? (input.monument.surfaceId.startsWith('glass-') ? input.monument.surfaceId : 'glass-clear')
-    : (stoneSurface ? input.monument.surfaceId : 'gabbro-polished')
+  if (steles.length === 0) steles = [createDefaultStele('primary')]
+  if (input.layout.type === 'paired' && steles.length < 2) {
+    steles.push(createDefaultStele('secondary'))
+  }
+
+  steles = uniqueSteleIds(steles)
 
   return {
     ...input,
     schemaVersion: PROJECT_SCHEMA_VERSION,
+    layout: {
+      type: input.layout.type,
+      gapM: clamp(input.layout.gapM, 0.04, 0.8),
+    },
+    steles,
     plot: {
       widthM: clamp(input.plot.widthM, 1.2, 6),
       depthM: clamp(input.plot.depthM, 1.2, 8),
     },
-    monument: {
-      ...input.monument,
-      surfaceId,
-      widthM: clamp(input.monument.widthM, 0.3, 2.5),
-      heightM: clamp(input.monument.heightM, 0.5, 3),
-      depthM: clamp(input.monument.depthM, 0.04, 0.4),
-    },
-    portrait: {
-      ...input.portrait,
-      offsetX: clamp(input.portrait.offsetX, -1, 1),
-      offsetY: clamp(input.portrait.offsetY, -1, 1),
-      zoom: clamp(input.portrait.zoom, 1, 3),
-    },
   }
 }
 
-export function migrateProjectV2(input: LegacyProjectV2): MemorialProject {
+export function getVisibleSteles(project: MemorialProject): MemorialStele[] {
+  if (project.layout.type === 'single') return project.steles.slice(0, 1)
+  if (project.layout.type === 'paired') return project.steles.slice(0, 2)
+  return project.steles
+}
+
+export function getCompositionWidth(project: MemorialProject): number {
+  const steles = getVisibleSteles(project)
+  if (steles.length === 0) return 0
+  return steles.reduce((sum, stele) => sum + stele.monument.widthM, 0)
+    + project.layout.gapM * Math.max(0, steles.length - 1)
+}
+
+export function getSteleLayoutPositions(project: MemorialProject): Array<{ stele: MemorialStele; x: number }> {
+  const steles = getVisibleSteles(project)
+  const total = getCompositionWidth(project)
+  let cursor = -total / 2
+
+  return steles.map((stele) => {
+    const x = cursor + stele.monument.widthM / 2
+    cursor += stele.monument.widthM + project.layout.gapM
+    return { stele, x }
+  })
+}
+
+export function withLayout(project: MemorialProject, type: LayoutType): MemorialProject {
+  const next = {
+    ...project,
+    layout: { ...project.layout, type },
+    steles: [...project.steles],
+  }
+  if (type === 'paired' && next.steles.length < 2) {
+    const secondary = createDefaultStele('secondary')
+    secondary.monument.heightM = 1.18
+    next.steles.push(secondary)
+  }
+  return normalizeProject(next)
+}
+
+export function migrateProjectV3(input: LegacyProjectV3): MemorialProject {
   return normalizeProject({
-    ...input,
     schemaVersion: PROJECT_SCHEMA_VERSION,
-    ...defaultManagedComponents(input),
+    projectId: input.projectId,
+    layout: { type: 'single', gapM: 0.16 },
+    steles: [{
+      id: 'primary',
+      monument: input.monument,
+      portrait: input.portrait,
+      inscription: input.inscription,
+    }],
+    plot: input.plot,
+    flowerBed: input.flowerBed,
+    plinth: input.plinth,
+    paving: input.paving,
+    border: input.border,
+    fence: input.fence,
+    bench: input.bench,
+    table: input.table,
+    vase: input.vase,
+  })
+}
+
+export function migrateProjectV2(input: LegacyProjectV2): MemorialProject {
+  const managed = defaultManagedComponents(input)
+  return migrateProjectV3({
+    schemaVersion: 3,
+    projectId: input.projectId,
+    plot: input.plot,
+    monument: input.monument,
+    portrait: input.portrait,
+    inscription: input.inscription,
+    ...managed,
   })
 }
 
 export function migrateProjectV1(input: LegacyProjectV1): MemorialProject {
-  return normalizeProject({
-    ...input,
-    schemaVersion: PROJECT_SCHEMA_VERSION,
+  const managed = defaultManagedComponents(input)
+  return migrateProjectV3({
+    schemaVersion: 3,
+    projectId: input.projectId,
+    plot: input.plot,
     monument: {
       ...input.monument,
       surfaceId: defaultSurfaceFor(input.monument.material),
@@ -228,7 +377,7 @@ export function migrateProjectV1(input: LegacyProjectV1): MemorialProject {
       dates: '19XX — 20XX',
       epitaph: '',
     },
-    ...defaultManagedComponents(input),
+    ...managed,
   })
 }
 
@@ -240,13 +389,20 @@ export function parseProject(raw: string): MemorialProject {
   const parsed = JSON.parse(raw) as { schemaVersion?: unknown }
   if (parsed.schemaVersion === 1) return migrateProjectV1(parsed as LegacyProjectV1)
   if (parsed.schemaVersion === 2) return migrateProjectV2(parsed as LegacyProjectV2)
+  if (parsed.schemaVersion === 3) return migrateProjectV3(parsed as LegacyProjectV3)
   if (parsed.schemaVersion !== PROJECT_SCHEMA_VERSION) {
     throw new Error(`Unsupported project schema: ${String(parsed.schemaVersion)}`)
   }
 
   const current = parsed as unknown as Partial<MemorialProject>
-  if (!current.plot || !current.monument || !current.portrait || !current.inscription || !current.border) {
+  if (!current.layout || !Array.isArray(current.steles) || !current.plot || !current.border) {
     throw new Error('Project is missing required sections')
+  }
+  if (!['single', 'paired', 'family'].includes(current.layout.type ?? '')) {
+    throw new Error('Project layout type is invalid')
+  }
+  if (current.steles.length === 0 || current.steles.length > MAX_SUPPORTED_STELES) {
+    throw new Error('Project stele count is unsupported')
   }
   return normalizeProject(current as MemorialProject)
 }

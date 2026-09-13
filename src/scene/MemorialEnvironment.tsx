@@ -6,7 +6,7 @@ import {
   TABLE_STYLES,
   VASE_STYLES,
 } from '../domain/componentCatalog'
-import type { MemorialProject } from '../domain/memorialProject'
+import { getCompositionWidth, type MemorialProject } from '../domain/memorialProject'
 
 function Fence({ project }: { project: MemorialProject }) {
   if (!project.fence.enabled) return null
@@ -86,7 +86,8 @@ function Border({ project }: { project: MemorialProject }) {
 
 function Vase({ project, side }: { project: MemorialProject; side: 'left' | 'right' }) {
   const style = VASE_STYLES.find((item) => item.id === project.vase.styleId) ?? VASE_STYLES[0]
-  const x = (side === 'left' ? -1 : 1) * Math.max(0.34, project.monument.widthM * 0.72)
+  const compositionWidth = getCompositionWidth(project)
+  const x = (side === 'left' ? -1 : 1) * Math.max(0.34, compositionWidth * 0.58)
   return (
     <mesh position={[x, style.heightM / 2 + 0.1, -project.plot.depthM * 0.2]} castShadow>
       <cylinderGeometry args={[0.085, 0.065, style.heightM, 24]} />

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
-import type { MemorialProject } from '../domain/memorialProject'
+import type { MemorialStele } from '../domain/memorialProject'
 
-function useInscriptionTexture(project: MemorialProject) {
+function useInscriptionTexture(stele: MemorialStele) {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null)
-  const inscription = project.inscription
-  const material = project.monument.material
+  const inscription = stele.inscription
+  const material = stele.monument.material
 
   useEffect(() => {
     if (!inscription.enabled) {
@@ -45,16 +45,16 @@ function useInscriptionTexture(project: MemorialProject) {
       current?.dispose()
       return next
     })
-  }, [inscription.dates, inscription.enabled, inscription.epitaph, inscription.name, material])
+  }, [inscription.dates, inscription.enabled, inscription.epitaph, inscription.name, material, stele.id])
 
   useEffect(() => () => texture?.dispose(), [texture])
   return texture
 }
 
-export function InscriptionPlane({ project, z }: { project: MemorialProject; z: number }) {
-  const texture = useInscriptionTexture(project)
+export function InscriptionPlane({ stele, z }: { stele: MemorialStele; z: number }) {
+  const texture = useInscriptionTexture(stele)
   if (!texture) return null
-  const { widthM, heightM } = project.monument
+  const { widthM, heightM } = stele.monument
 
   return (
     <mesh position={[0, heightM * 0.23, z]}>

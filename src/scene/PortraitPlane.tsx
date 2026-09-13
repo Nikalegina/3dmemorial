@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
-import type { MemorialProject } from '../domain/memorialProject'
+import type { MemorialStele } from '../domain/memorialProject'
 
-function usePortraitTexture(url: string | null, project: MemorialProject) {
+function usePortraitTexture(url: string | null, stele: MemorialStele) {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null)
-  const { mode, offsetX, offsetY, zoom } = project.portrait
+  const { mode, offsetX, offsetY, zoom } = stele.portrait
 
   useEffect(() => {
     if (!url) {
@@ -53,7 +53,7 @@ function usePortraitTexture(url: string | null, project: MemorialProject) {
     return () => {
       cancelled = true
     }
-  }, [mode, offsetX, offsetY, url, zoom])
+  }, [mode, offsetX, offsetY, stele.id, url, zoom])
 
   useEffect(() => () => texture?.dispose(), [texture])
   return texture
@@ -61,21 +61,21 @@ function usePortraitTexture(url: string | null, project: MemorialProject) {
 
 export function PortraitPlane({
   url,
-  project,
+  stele,
   z,
 }: {
   url: string | null
-  project: MemorialProject
+  stele: MemorialStele
   z: number
 }) {
-  const texture = usePortraitTexture(url, project)
+  const texture = usePortraitTexture(url, stele)
   if (!texture) return null
 
-  const portraitWidth = project.monument.widthM * 0.5
-  const portraitHeight = Math.min(project.monument.heightM * 0.42, portraitWidth * 1.18)
+  const portraitWidth = stele.monument.widthM * 0.5
+  const portraitHeight = Math.min(stele.monument.heightM * 0.42, portraitWidth * 1.18)
 
   return (
-    <mesh position={[0, project.monument.heightM * 0.62, z]}>
+    <mesh position={[0, stele.monument.heightM * 0.62, z]}>
       <planeGeometry args={[portraitWidth, portraitHeight]} />
       <meshBasicMaterial map={texture} transparent toneMapped={false} depthWrite={false} />
     </mesh>

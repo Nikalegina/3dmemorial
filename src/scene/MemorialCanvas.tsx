@@ -8,13 +8,13 @@ import { StudioEnvironment } from './StudioEnvironment'
 
 export function MemorialCanvas({
   project,
-  portraitUrl,
+  portraitUrls,
   cameraPreset,
   highQualityRender,
   onCanvasReady,
 }: {
   project: MemorialProject
-  portraitUrl: string | null
+  portraitUrls: Record<string, string>
   cameraPreset: CameraPreset
   highQualityRender: boolean
   onCanvasReady: (canvas: HTMLCanvasElement) => void
@@ -46,7 +46,7 @@ export function MemorialCanvas({
       />
       <directionalLight position={[-4, 2.5, -3]} intensity={0.5} />
       <MemorialEnvironment project={project} />
-      <Monument project={project} portraitUrl={portraitUrl} />
+      <Monument project={project} portraitUrls={portraitUrls} />
       <CameraControls project={project} preset={cameraPreset} />
     </Canvas>
   )

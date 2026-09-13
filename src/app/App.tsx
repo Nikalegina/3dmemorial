@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   createDefaultProject,
   normalizeProject,
@@ -23,8 +23,9 @@ function nextFrame(): Promise<void> {
 
 export function App() {
   const [project, setProject] = useState<MemorialProject>(() => readSharedProject(window.location.href) ?? loadLocalProject() ?? createDefaultProject())
-  const [portraitUrl, setPortraitUrl] = useState<string | null>(null)
-  const [portraitError, setPortraitError] = useState<string | null>(null)
+  const [portraitUrls, setPortraitUrls] = useState<Record<string, string>>({})
+  const [portraitErrors, setPortraitErrors] = useState<Record<string, string | null>>({})
+  const portraitUrlsRef = useRef<Record<string, string>>({})
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('perspective')
   const [renderCanvas, setRenderCanvas] = useState<HTMLCanvasElement | null>(null)
   const [shareStatus, setShareStatus] = useState<string | null>(null)
@@ -33,33 +34,47 @@ export function App() {
   const [highQualityRender, setHighQualityRender] = useState(false)
   const normalized = useMemo(() => normalizeProject(project), [project])
 
-  useEffect(() => () => {
-    if (portraitUrl) URL.revokeObjectURL(portraitUrl)
-  }, [portraitUrl])
+  useEffect(() => {
+    portraitUrlsRef.current = portraitUrls
+  }, [portraitUrls])
 
-  const onPortraitFile = (file: File | null) => {
+  useEffect(() => () => {
+    for (const url of Object.values(portraitUrlsRef.current)) URL.revokeObjectURL(url)
+  }, [])
+
+  const clearPortraits = () => {
+    setPortraitUrls((current) => {
+      for (const url of Object.values(current)) URL.revokeObjectURL(url)
+      return {}
+    })
+    setPortraitErrors({})
+  }
+
+  const onPortraitFile = (steleId: string, file: File | null) => {
     if (!file) {
-      setPortraitError(null)
-      setPortraitUrl((current) => {
-        if (current) URL.revokeObjectURL(current)
-        return null
+      setPortraitErrors((current) => ({ ...current, [steleId]: null }))
+      setPortraitUrls((current) => {
+        if (current[steleId]) URL.revokeObjectURL(current[steleId])
+        const next = { ...current }
+        delete next[steleId]
+        return next
       })
       return
     }
 
     if (!PORTRAIT_TYPES.has(file.type)) {
-      setPortraitError('Поддерживаются JPG, PNG и WebP.')
+      setPortraitErrors((current) => ({ ...current, [steleId]: 'Поддерживаются JPG, PNG и WebP.' }))
       return
     }
     if (file.size > PORTRAIT_MAX_BYTES) {
-      setPortraitError('Файл слишком большой. Максимальный размер — 12 МБ.')
+      setPortraitErrors((current) => ({ ...current, [steleId]: 'Файл слишком большой. Максимальный размер — 12 МБ.' }))
       return
     }
 
-    setPortraitError(null)
-    setPortraitUrl((current) => {
-      if (current) URL.revokeObjectURL(current)
-      return URL.createObjectURL(file)
+    setPortraitErrors((current) => ({ ...current, [steleId]: null }))
+    setPortraitUrls((current) => {
+      if (current[steleId]) URL.revokeObjectURL(current[steleId])
+      return { ...current, [steleId]: URL.createObjectURL(file) }
     })
   }
 
@@ -128,10 +143,10 @@ export function App() {
     try {
       const parsed = parseProject(await file.text())
       setProject(parsed)
-      onPortraitFile(null)
+      clearPortraits()
       setCameraPreset('perspective')
       setShareStatus(null)
-      setImportStatus('Проект импортирован. Фото не входит в JSON и при необходимости загружается отдельно.')
+      setImportStatus('Проект импортирован. Фото не входит в JSON и при необходимости загружается отдельно для каждого памятника.')
     } catch {
       setImportStatus('Не удалось импортировать проект: файл повреждён или имеет неподдерживаемую схему.')
     }
@@ -139,13 +154,14 @@ export function App() {
 
   const shareProject = async () => {
     const url = createShareUrl(normalized, window.location.href)
+    const hasPortrait = Object.keys(portraitUrls).length > 0
     try {
       if (!navigator.clipboard) throw new Error('Clipboard unavailable')
       await navigator.clipboard.writeText(url)
-      setShareStatus(portraitUrl ? 'Ссылка скопирована. Фото не передаётся — только конфигурация.' : 'Ссылка на интерактивный проект скопирована.')
+      setShareStatus(hasPortrait ? 'Ссылка скопирована. Фото не передаются — только конфигурация.' : 'Ссылка на интерактивный проект скопирована.')
     } catch {
       window.prompt('Скопируйте ссылку на проект', url)
-      setShareStatus(portraitUrl ? 'Фото остаётся только на этом устройстве.' : 'Ссылка сформирована.')
+      setShareStatus(hasPortrait ? 'Фотографии остаются только на этом устройстве.' : 'Ссылка сформирована.')
     }
   }
 
@@ -154,7 +170,7 @@ export function App() {
       <div className="viewport">
         <MemorialCanvas
           project={normalized}
-          portraitUrl={portraitUrl}
+          portraitUrls={portraitUrls}
           cameraPreset={cameraPreset}
           highQualityRender={highQualityRender}
           onCanvasReady={setRenderCanvas}
@@ -164,13 +180,13 @@ export function App() {
         project={normalized}
         onChange={setProject}
         onPortraitFile={onPortraitFile}
-        portraitError={portraitError}
+        portraitErrors={portraitErrors}
         cameraPreset={cameraPreset}
         onCameraPreset={setCameraPreset}
         onSave={() => saveLocalProject(normalized)}
         onReset={() => {
           setProject(createDefaultProject())
-          onPortraitFile(null)
+          clearPortraits()
           setCameraPreset('perspective')
           setExportStatus(null)
           setImportStatus(null)
@@ -183,7 +199,7 @@ export function App() {
         importStatus={importStatus}
         onShare={shareProject}
         shareStatus={shareStatus}
-        shareOmitsPortrait={Boolean(portraitUrl)}
+        shareOmitsPortrait={Object.keys(portraitUrls).length > 0}
       />
     </main>
   )
