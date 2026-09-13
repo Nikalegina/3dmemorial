@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "assets": [
+    { "id": "STELE-ARCH-PROC", "type": "STELE_PROFILE", "source": "internal-procedural", "license": "OWNED", "status": "ACTIVE" },
+    { "id": "STELE-RECT-PROC", "type": "STELE_PROFILE", "source": "internal-procedural", "license": "OWNED", "status": "ACTIVE" },
+    { "id": "STELE-SLANT-PROC", "type": "STELE_PROFILE", "source": "internal-procedural", "license": "OWNED", "status": "ACTIVE" },
+    { "id": "STELE-WAVE-PROC", "type": "STELE_PROFILE", "source": "internal-procedural", "license": "OWNED", "status": "ACTIVE" },
+    { "id": "STELE-HEART-PROC", "type": "STELE_PROFILE", "source": "internal-procedural", "license": "OWNED", "status": "ACTIVE" },
+    { "id": "STELE-MUSLIM-ARCH-PROC", "type": "STELE_PROFILE", "source": "internal-procedural", "license": "OWNED", "status": "ACTIVE" }
+  ]
+}
