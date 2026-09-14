@@ -12,9 +12,9 @@ import {
 } from '../src/domain/sourceCatalogProfiles.ts'
 import { createSteleGeometry } from '../src/scene/geometry.ts'
 
-test('source catalog registry contains 106 renderable profiles and 226 confirmed size variants', () => {
-  assert.equal(SOURCE_CATALOG_PROFILE_COUNT, 106)
-  assert.equal(SOURCE_CATALOG_VARIANT_COUNT, 226)
+test('source catalog registry contains 110 runtime source models and 231 confirmed size variants', () => {
+  assert.equal(SOURCE_CATALOG_PROFILE_COUNT, 110)
+  assert.equal(SOURCE_CATALOG_VARIANT_COUNT, 231)
 
   const ids = SOURCE_CATALOG_PROFILES.map((profile) => profile.id)
   const categoryModels = SOURCE_CATALOG_PROFILES.map((profile) => `${profile.sourceCategory}:${profile.sourceModel}`)
@@ -23,7 +23,7 @@ test('source catalog registry contains 106 renderable profiles and 226 confirmed
 
   assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'figured').length, 84)
   assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'family').length, 21)
-  assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'elite').length, 1)
+  assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'elite').length, 5)
 })
 
 test('every source profile has bounded visual contour and category-specific source dimensions', () => {
@@ -63,7 +63,7 @@ test('every source profile has bounded visual contour and category-specific sour
   }
 })
 
-test('all 106 renderable source profiles generate non-empty Three.js extruded geometry', () => {
+test('all 110 source envelopes generate finite fallback extrusion geometry', () => {
   for (const profile of SOURCE_CATALOG_PROFILES) {
     const variant = profile.variants[0]
     assert.ok(variant, profile.id)
@@ -152,7 +152,7 @@ test('source catalog lookup resolves source model 105 and rejects unknown ids', 
 })
 
 
-test('elite model 19 is the only source-backed elite profile in this gate', () => {
+test('elite source-backed runtime includes model 19 and four procedural compounds', () => {
   const elite19 = getSourceCatalogProfileByModel('19', 'elite')
   assert.ok(elite19)
   assert.equal(elite19.id, 'ermis-elite-19')
@@ -170,4 +170,36 @@ test('elite model 19 is the only source-backed elite profile in this gate', () =
   assert.equal(project.steles[0].monument.widthM, 0.7)
   assert.equal(project.steles[0].monument.depthM, 0.15)
   assert.equal(project.steles[0].monument.sourceStoneCode, 'K06')
+})
+
+
+test('procedural elite source projects preserve exact dimensions and disable artwork on open portals', () => {
+  const elite4 = createSourceCatalogProject('ermis-elite-4', 0)
+  assert.equal(elite4.steles[0].monument.heightM, 1.63)
+  assert.equal(elite4.steles[0].monument.widthM, 1.18)
+  assert.equal(elite4.steles[0].monument.depthM, 0.2)
+  assert.equal(elite4.steles[0].monument.sourceStoneCode, 'K06')
+  assert.equal(elite4.steles[0].portrait.enabled, false)
+  assert.equal(elite4.steles[0].inscription.enabled, false)
+
+  const elite22 = createSourceCatalogProject('ermis-elite-22', 0)
+  assert.equal(elite22.steles[0].monument.heightM, 2)
+  assert.equal(elite22.steles[0].monument.widthM, 1.2)
+  assert.equal(elite22.steles[0].monument.sourceStoneCode, 'K13')
+  assert.equal(elite22.steles[0].portrait.enabled, false)
+
+  const elite24b = createSourceCatalogProject('ermis-elite-24', 1)
+  assert.equal(elite24b.steles[0].monument.heightM, 2.5)
+  assert.equal(elite24b.steles[0].monument.widthM, 1.2)
+  assert.equal(elite24b.steles[0].monument.depthM, 0.25)
+  assert.equal(elite24b.steles[0].monument.sourceStoneCode, 'K13')
+  assert.equal(findSourceCatalogVariantIndex(getSourceCatalogProfile('ermis-elite-24'), elite24b.steles[0].monument), 1)
+
+  const elite25 = createSourceCatalogProject('ermis-elite-25', 0)
+  assert.equal(elite25.steles[0].monument.heightM, 1.2)
+  assert.equal(elite25.steles[0].monument.widthM, 1.5)
+  assert.equal(elite25.steles[0].monument.depthM, 0.25)
+  assert.equal(elite25.steles[0].monument.sourceStoneCode, 'K14')
+  assert.equal(elite25.steles[0].portrait.enabled, true)
+  assert.equal(elite25.steles[0].inscription.enabled, true)
 })
