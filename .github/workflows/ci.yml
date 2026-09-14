@@ -71,6 +71,7 @@ jobs:
           grep -q 'data-startup-source="default"' browser-artifacts/single-dom.html
           grep -q 'data-webgl-ready="true"' browser-artifacts/single-dom.html
           grep -q 'data-visible-steles="1"' browser-artifacts/single-dom.html
+          grep -q 'Оставить заявку для расчёта' browser-artifacts/single-dom.html
 
           timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/single.png             "http://127.0.0.1:4173/"
 

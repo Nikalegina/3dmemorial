@@ -35,6 +35,8 @@ interface Props {
   importStatus: string | null
   onShare: () => void
   shareStatus: string | null
+  onRequestQuote: () => void
+  quoteStatus: string | null
   shareOmitsPortrait: boolean
 }
 
@@ -55,6 +57,8 @@ export function ConfiguratorPanel({
   importStatus,
   onShare,
   shareStatus,
+  onRequestQuote,
+  quoteStatus,
   shareOmitsPortrait,
 }: Props) {
   const [activeSteleIndex, setActiveSteleIndex] = useState(0)
@@ -157,7 +161,14 @@ export function ConfiguratorPanel({
     <aside className="panel">
       <div className="brand">
         <strong>КРЫМ МОНУМЕНТ</strong>
-        <span>Memorial 3D Studio / Gate 5</span>
+        <span>Memorial 3D Studio</span>
+      </div>
+
+      <div className="quote-card">
+        <strong>Подберём решение под ваш бюджет</strong>
+        <span>Сохраните конфигурацию и передайте проект специалисту для точного расчёта.</span>
+        <button className="quote-primary" onClick={onRequestQuote}>Оставить заявку для расчёта</button>
+        {quoteStatus && <p className="quote-status">{quoteStatus}</p>}
       </div>
 
       <section>
