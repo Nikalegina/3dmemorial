@@ -46,6 +46,22 @@ test('catalog recipe has priority over legacy preset when both are supplied', ()
   assert.equal(result.project.steles[0].monument.material, 'glass')
 })
 
+
+test('exact source catalog SKU resolves model geometry before legacy preset', () => {
+  const result = resolveStartupProject(
+    'https://example.test/constructor?sourceSku=ERMIS-SINGLE-20&preset=classic-granite',
+    null,
+  )
+  assert.equal(result.source, 'catalog')
+  assert.equal(result.context.sourceSku, 'ERMIS-SINGLE-20')
+  assert.equal(result.project.catalogSource?.modelId, 'ERMIS-SINGLE-20')
+  assert.equal(result.project.catalogSource?.geometryMode, 'catalog-profile')
+  assert.equal(result.project.steles[0].monument.profileId, 'ermis-single-20')
+  assert.equal(result.project.steles[0].monument.heightM, 1.1)
+  assert.equal(result.project.steles[0].monument.widthM, 0.6)
+  assert.equal(result.project.steles[0].monument.stoneCode, 'К06')
+})
+
 test('invalid catalog product, preset and unsafe SKU fail closed and do not override local project', () => {
   const stored = createDefaultProject()
   stored.projectId = 'LOCAL-KEEP'
