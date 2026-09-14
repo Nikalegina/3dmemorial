@@ -42,3 +42,16 @@ test('explicit shared project has priority over catalog preset', () => {
 test('catalog parser tolerates malformed URLs by returning empty context', () => {
   assert.deepEqual(readCatalogEntry('not a url'), { presetId: null, sourceSku: null })
 })
+
+
+test('catalog entry supports family preset attribution', () => {
+  const result = resolveStartupProject(
+    'https://example.test/constructor?preset=family-glass&sourceSku=KM-FAMILY-001',
+    null,
+  )
+  assert.equal(result.source, 'catalog')
+  assert.equal(result.context.presetId, 'family-glass')
+  assert.equal(result.context.sourceSku, 'KM-FAMILY-001')
+  assert.equal(result.project.layout.type, 'family')
+  assert.equal(result.project.steles.length, 3)
+})

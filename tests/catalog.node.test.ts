@@ -41,6 +41,8 @@ test('presets create valid current-schema projects including paired variants', (
     assert.equal(project.schemaVersion, 5)
   }
   assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'paired-classic' && preset.create().steles.length >= 2))
+  assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'family-classic' && preset.create().steles.length === 3))
+  assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'family-glass' && preset.create().steles.every((stele) => stele.monument.material === 'glass')))
 })
 
 test('compatibility validation catches a composition that is too wide for its plot', () => {

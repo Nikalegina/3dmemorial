@@ -89,8 +89,22 @@ jobs:
 
           timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/paired-glass.png             "$PAIRED_URL"
 
+          FAMILY_URL="http://127.0.0.1:4173/?preset=family-glass&sourceSku=KM-FAMILY-001"
+
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "$FAMILY_URL"             > browser-artifacts/family-dom.html
+
+          grep -q 'data-startup-source="catalog"' browser-artifacts/family-dom.html
+          grep -q 'data-preset-id="family-glass"' browser-artifacts/family-dom.html
+          grep -q 'data-source-sku="KM-FAMILY-001"' browser-artifacts/family-dom.html
+          grep -q 'data-webgl-ready="true"' browser-artifacts/family-dom.html
+          grep -q 'data-visible-steles="3"' browser-artifacts/family-dom.html
+          grep -q 'data-rfq-ready="false"' browser-artifacts/family-dom.html
+
+          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/family-glass.png             "$FAMILY_URL"
+
           test -s browser-artifacts/single.png
           test -s browser-artifacts/paired-glass.png
+          test -s browser-artifacts/family-glass.png
 
       - name: Upload browser smoke artifacts
         if: always()

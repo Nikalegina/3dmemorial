@@ -175,6 +175,8 @@ interface LegacyProjectV4 {
 
 export const PROJECT_SCHEMA_VERSION = 5 as const
 export const MAX_SUPPORTED_STELES = 6
+export const MAX_FAMILY_EDITOR_STELES = 4
+export const MIN_FAMILY_EDITOR_STELES = 3
 
 const PORTRAIT_FRAME_IDS = new Set<PortraitFrameId>(['oval', 'rounded-rect', 'rectangle'])
 const INSCRIPTION_FONT_IDS = new Set<InscriptionFontId>(['classic', 'roman', 'modern'])
@@ -379,7 +381,40 @@ export function withLayout(project: MemorialProject, type: LayoutType): Memorial
     secondary.monument.heightM = 1.18
     next.steles.push(secondary)
   }
+
+  if (type === 'family') {
+    while (next.steles.length < MIN_FAMILY_EDITOR_STELES) {
+      const stele = createDefaultStele(`family-${next.steles.length + 1}`)
+      stele.monument.widthM = 0.56
+      stele.monument.heightM = next.steles.length === 1 ? 1.3 : 1.16
+      next.steles.push(stele)
+    }
+  }
+
   return normalizeProject(next)
+}
+
+export function addFamilyStele(project: MemorialProject): MemorialProject {
+  const family = withLayout(project, 'family')
+  if (family.steles.length >= MAX_FAMILY_EDITOR_STELES) return family
+
+  const next = createDefaultStele(`family-${family.steles.length + 1}`)
+  next.monument.widthM = 0.54
+  next.monument.heightM = 1.14
+  return normalizeProject({
+    ...family,
+    steles: [...family.steles, next],
+  })
+}
+
+export function removeFamilyStele(project: MemorialProject, steleId: string): MemorialProject {
+  const family = withLayout(project, 'family')
+  if (family.steles.length <= MIN_FAMILY_EDITOR_STELES) return family
+
+  return normalizeProject({
+    ...family,
+    steles: family.steles.filter((stele) => stele.id !== steleId),
+  })
 }
 
 export function migrateProjectV4(input: LegacyProjectV4): MemorialProject {
