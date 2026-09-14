@@ -72,7 +72,7 @@ export interface InscriptionConfig {
 export interface MemorialStele {
   id: string
   monument: MonumentConfig
-  portrait: LegacyPortraitConfigV4
+  portrait: PortraitConfig
   inscription: InscriptionConfig
 }
 
