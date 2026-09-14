@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
 import { CATALOG_PRODUCT_FAMILIES } from '../domain/catalogProducts'
+import { ELITE_CATALOG_MODEL_COUNT, ELITE_CATALOG_STRATEGY_COUNTS } from '../domain/eliteCatalog'
 import type { SourceCatalogCategory } from '../domain/sourceCatalogProfileTypes'
 import {
   SOURCE_CATALOG_PROFILES,
@@ -339,9 +340,15 @@ export function ConfiguratorPanel({
             }}
           >
             <option value="figured">Фигурные памятники · 84 модели</option>
-            <option value="family">Семейные памятники · 21 модель</option>
+            <option value="family">Семейные стелы · 21 модель</option>
+            <option value="elite">Элитные памятники · {ELITE_CATALOG_MODEL_COUNT} моделей</option>
           </select>
         </label>
+        {catalogCategory === 'elite' && (
+          <p className="field-hint" data-elite-catalog-summary="true">
+            В исходном каталоге {ELITE_CATALOG_MODEL_COUNT} модель элитного раздела: {ELITE_CATALOG_STRATEGY_COUNTS.profileExtrusion} допускает профильную 3D-реконструкцию, {ELITE_CATALOG_STRATEGY_COUNTS.proceduralCompound} требуют составной процедурной геометрии, {ELITE_CATALOG_STRATEGY_COUNTS.glbRequired} требуют отдельных скульптурных GLB-ассетов. Сейчас в редакторе открыт только подтверждённый профиль № 19; скульптурные модели не подменяются плоской формой.
+          </p>
+        )}
         <label className="field">
           <span>Поиск по номеру модели</span>
           <input
@@ -374,7 +381,7 @@ export function ConfiguratorPanel({
         >
           Открыть модель в 3D
         </button>
-        <p className="field-hint">105 исходных форм и 225 подтверждённых размерных вариантов: 84 фигурные модели и 21 семейная. Геометрия профиля восстановлена по catalog product render; размеры и коды пород сохранены из исходного каталога.</p>
+        <p className="field-hint">106 доступных профильных форм и 226 подтверждённых размерных вариантов: 84 фигурные модели, 21 семейная стела и 1 элитная профильная модель. Полный элитный раздел содержит 21 модель; сложные скульптурные позиции подключаются только через отдельную составную/GLB-геометрию.</p>
       </section>
 
       <section>
