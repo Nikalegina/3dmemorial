@@ -1,7 +1,7 @@
-import type { MonumentShape, PortraitFrame, PortraitMode, SurfaceMaterialId } from './memorialProject'
+import type { PortraitFrame, PortraitMode, StandardMonumentShape, SurfaceMaterialId } from './memorialProject'
 
 export interface MonumentShapeDefinition {
-  id: MonumentShape
+  id: StandardMonumentShape
   name: string
   family: 'neutral' | 'slavic' | 'muslim'
   procedural: true
@@ -77,7 +77,7 @@ export const PORTRAIT_FRAMES: readonly PortraitFrameDefinition[] = [
   { id: 'full', name: 'Крупная фотопечать', description: 'Увеличенная зона цветного изображения, особенно для стеклянных стел.' },
 ] as const
 
-export function getShapeDefinition(id: MonumentShape): MonumentShapeDefinition {
+export function getShapeDefinition(id: StandardMonumentShape): MonumentShapeDefinition {
   const found = MONUMENT_SHAPES.find((item) => item.id === id)
   if (!found) throw new Error(`Unknown monument shape: ${id}`)
   return found
