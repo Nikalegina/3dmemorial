@@ -1,6 +1,13 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
 import { CATALOG_PRODUCT_FAMILIES } from '../domain/catalogProducts'
+import {
+  SOURCE_CATALOG_PROFILES,
+  createSourceCatalogProject,
+  findSourceCatalogVariantIndex,
+  getSourceCatalogProfile,
+  isSourceCatalogProfileId,
+} from '../domain/sourceCatalogProfiles'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, FLOWER_BED_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
@@ -77,15 +84,29 @@ export function ConfiguratorPanel({
   shareOmitsPortrait,
 }: Props) {
   const [activeSteleIndex, setActiveSteleIndex] = useState(0)
+  const [catalogProfileId, setCatalogProfileId] = useState<string>(SOURCE_CATALOG_PROFILES[0]?.id ?? '')
   const visibleSteles = getVisibleSteles(project)
   const safeIndex = Math.min(activeSteleIndex, Math.max(0, visibleSteles.length - 1))
   const activeStele = visibleSteles[safeIndex] ?? project.steles[0]
   const diagnostics = validateProjectCompatibility(project)
   const standardGlassSize = findStandardGlassSteleSize(activeStele.monument.widthM, activeStele.monument.heightM)
+  const sourceCatalogProfile = isSourceCatalogProfileId(activeStele.monument.shape)
+    ? getSourceCatalogProfile(activeStele.monument.shape)
+    : null
+  const sourceCatalogVariantIndex = sourceCatalogProfile
+    ? findSourceCatalogVariantIndex(sourceCatalogProfile, activeStele.monument)
+    : -1
 
   useEffect(() => {
     if (activeSteleIndex !== safeIndex) setActiveSteleIndex(safeIndex)
   }, [activeSteleIndex, safeIndex])
+
+  useEffect(() => {
+    if (sourceCatalogProfile && catalogProfileId !== sourceCatalogProfile.id) {
+      setCatalogProfileId(sourceCatalogProfile.id)
+    }
+  }, [catalogProfileId, sourceCatalogProfile])
+
 
   const updateStele = (steleId: string, updater: (stele: MemorialStele) => MemorialStele) => {
     onChange(normalizeProject({
@@ -188,6 +209,17 @@ export function ConfiguratorPanel({
     patchMonument({ widthM: size.widthMm / 1000, heightM: size.heightMm / 1000 })
   }
 
+  const applySourceCatalogVariant = (index: number) => {
+    if (!sourceCatalogProfile || index < 0) return
+    const variant = sourceCatalogProfile.variants[index]
+    if (!variant) return
+    patchMonument({
+      widthM: variant.widthMm / 1000,
+      heightM: variant.heightMm / 1000,
+      depthM: variant.depthMm / 1000,
+    })
+  }
+
   const applyPreset = (create: () => MemorialProject) => {
     onChange(create())
     setActiveSteleIndex(0)
@@ -256,6 +288,31 @@ export function ConfiguratorPanel({
             </button>
           ))}
         </div>
+
+        <label className="field">
+          <span>Фигурная модель из исходного каталога</span>
+          <select
+            value={catalogProfileId}
+            data-selected-catalog-profile={catalogProfileId}
+            onChange={(e) => setCatalogProfileId(e.target.value)}
+          >
+            {SOURCE_CATALOG_PROFILES.map((profile) => (
+              <option key={profile.id} value={profile.id}>
+                № {profile.sourceModel} · {profile.variants.length} {profile.variants.length === 1 ? 'размер' : 'размера/варианта'}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          className="secondary-action"
+          onClick={() => {
+            if (!isSourceCatalogProfileId(catalogProfileId)) return
+            applyPreset(() => createSourceCatalogProject(catalogProfileId))
+          }}
+        >
+          Открыть модель в 3D
+        </button>
+        <p className="field-hint">84 исходные формы и 193 подтверждённых размерных варианта. Геометрия профиля восстановлена по каталожным product render, размеры и коды пород сохранены из каталога.</p>
       </section>
 
       <section>
@@ -314,9 +371,38 @@ export function ConfiguratorPanel({
         <label className="field">
           <span>Форма</span>
           <select value={activeStele.monument.shape} onChange={(e) => patchMonument({ shape: e.target.value as MonumentShape })}>
+            {sourceCatalogProfile && (
+              <option value={sourceCatalogProfile.id}>Каталог № {sourceCatalogProfile.sourceModel}</option>
+            )}
             {MONUMENT_SHAPES.map((shape) => <option value={shape.id} key={shape.id}>{shape.name}</option>)}
           </select>
         </label>
+        {sourceCatalogProfile && (
+          <>
+            <label className="field">
+              <span>Размер по каталогу</span>
+              <select
+                value={sourceCatalogVariantIndex >= 0 ? String(sourceCatalogVariantIndex) : 'custom'}
+                onChange={(e) => {
+                  if (e.target.value === 'custom') return
+                  applySourceCatalogVariant(Number(e.target.value))
+                }}
+              >
+                {sourceCatalogVariantIndex < 0 && <option value="custom">Индивидуальный размер</option>}
+                {sourceCatalogProfile.variants.map((variant, index) => (
+                  <option key={`${sourceCatalogProfile.id}-${index}`} value={index}>
+                    {variant.heightMm} × {variant.widthMm} × {variant.depthMm} мм
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="field-hint">
+              Исходная модель № {sourceCatalogProfile.sourceModel}, страница {sourceCatalogProfile.sourcePage}. Коды доступных пород для выбранного размера: {sourceCatalogVariantIndex >= 0
+                ? (sourceCatalogProfile.variants[sourceCatalogVariantIndex]?.materialCodes.join(', ') || 'не указаны')
+                : 'размер изменён вручную'}.
+            </p>
+          </>
+        )}
         <label className="field">
           <span>Исполнение</span>
           <select value={activeStele.monument.material} onChange={(e) => setConstruction(e.target.value as MonumentMaterial)}>

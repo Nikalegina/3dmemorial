@@ -17,7 +17,7 @@ test('quote handoff contains configuration and source attribution but no portrai
     project,
     'https://example.test/constructor?project=encoded',
     'catalog',
-    { presetId: 'paired-glass', catalogProductId: null, sourceSku: 'KM-PAIR-001' },
+    { presetId: 'paired-glass', catalogProductId: null, sourceProfileId: null, sourceVariantIndex: null, sourceSku: 'KM-PAIR-001' },
   )
 
   assert.equal(envelope.channel, HOST_BRIDGE_CHANNEL)
@@ -26,6 +26,8 @@ test('quote handoff contains configuration and source attribution but no portrai
   assert.equal(envelope.projectSchemaVersion, 6)
   assert.equal(envelope.project.steles.length, 2)
   assert.equal(envelope.source.catalogProductId, null)
+  assert.equal(envelope.source.sourceProfileId, null)
+  assert.equal(envelope.source.sourceVariantIndex, null)
   assert.equal(envelope.source.sourceSku, 'KM-PAIR-001')
   assert.deepEqual(envelope.privacy, {
     includesPortraitBinary: false,
@@ -43,4 +45,27 @@ test('parent origin accepts only absolute HTTP(S) referrers', () => {
   assert.equal(resolveParentOrigin('javascript:alert(1)'), null)
   assert.equal(resolveParentOrigin('not a url'), null)
   assert.equal(resolveParentOrigin(''), null)
+})
+
+
+test('quote bridge preserves exact source profile attribution', () => {
+  const project = createDefaultProject()
+  project.steles[0].monument.shape = 'ermis-105'
+  const envelope = createQuoteRequestEnvelope(
+    project,
+    'https://example.test/constructor?profile=ermis-105&sourceSku=CAT-105',
+    'catalog',
+    {
+      presetId: null,
+      catalogProductId: null,
+      sourceProfileId: 'ermis-105',
+      sourceVariantIndex: 0,
+      sourceSku: 'CAT-105',
+    },
+  )
+
+  assert.equal(envelope.source.sourceProfileId, 'ermis-105')
+  assert.equal(envelope.source.sourceVariantIndex, 0)
+  assert.equal(envelope.source.sourceSku, 'CAT-105')
+  assert.equal(envelope.project.steles[0].monument.shape, 'ermis-105')
 })

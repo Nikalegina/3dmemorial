@@ -4,6 +4,7 @@ import {
   normalizeGlassSteleConfig,
   type GlassSteleConfig,
 } from './glassMemorial.ts'
+import type { SourceCatalogProfileId } from './sourceCatalogProfileTypes.ts'
 import type {
   BenchStyleId,
   BorderStyleId,
@@ -17,7 +18,7 @@ import type {
   VaseStyleId,
 } from './componentCatalog.ts'
 
-export type MonumentShape =
+export type StandardMonumentShape =
   | 'rectangle'
   | 'rounded-rectangle'
   | 'arch'
@@ -33,6 +34,8 @@ export type MonumentShape =
   | 'heart'
   | 'muslim-arch'
   | 'muslim-dome'
+
+export type MonumentShape = StandardMonumentShape | SourceCatalogProfileId
 
 export type MonumentMaterial = 'gabbro' | 'glass' | 'hybrid'
 export type SurfaceMaterialId =
