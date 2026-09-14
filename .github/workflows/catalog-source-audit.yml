@@ -1,0 +1,190 @@
+name: Catalog Source Audit
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.head_ref == 'memorial-3d-catalog-source-audit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture live catalog with Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p catalog-audit/images
+          CATALOG_URL="https://memorial-crimea.kirillmiropolcev.chatgpt.site/catalog"
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then
+            echo "Chrome/Chromium is not available on the runner"
+            exit 1
+          fi
+
+          PROFILE="$(mktemp -d)"
+          trap 'rm -rf "$PROFILE"' EXIT
+
+          timeout 90s "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-dev-shm-usage \
+            --disable-background-networking=false \
+            --disable-component-update \
+            --disable-sync \
+            --window-size=1440,12000 \
+            --virtual-time-budget=20000 \
+            --user-data-dir="$PROFILE" \
+            --dump-dom \
+            "$CATALOG_URL" > catalog-audit/catalog-dom.html
+
+          test -s catalog-audit/catalog-dom.html
+
+          timeout 90s "$CHROME" \
+            --headless=new \
+            --no-sandbox \
+            --disable-dev-shm-usage \
+            --disable-background-networking=false \
+            --disable-component-update \
+            --disable-sync \
+            --hide-scrollbars \
+            --window-size=1440,12000 \
+            --virtual-time-budget=20000 \
+            --user-data-dir="$PROFILE" \
+            --screenshot=catalog-audit/catalog.png \
+            "$CATALOG_URL"
+
+          test -s catalog-audit/catalog.png
+
+      - name: Extract catalog text, links and image URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin, urlparse
+          import json, re
+          from pathlib import Path
+
+          base = "https://memorial-crimea.kirillmiropolcev.chatgpt.site/catalog"
+          html = Path("catalog-audit/catalog-dom.html").read_text("utf-8", errors="replace")
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.images = []
+                  self.links = []
+                  self.text = []
+                  self.attrs = []
+              def handle_starttag(self, tag, attrs):
+                  data = dict(attrs)
+                  if tag == "img":
+                      for key in ("src", "data-src", "data-original"):
+                          if data.get(key):
+                              self.images.append(data[key])
+                      if data.get("srcset"):
+                          self.images.extend(x.strip().split(" ")[0] for x in data["srcset"].split(",") if x.strip())
+                  if tag == "source" and data.get("srcset"):
+                      self.images.extend(x.strip().split(" ")[0] for x in data["srcset"].split(",") if x.strip())
+                  if tag == "a" and data.get("href"):
+                      self.links.append(data["href"])
+                  for key, value in attrs:
+                      if key and value and (key.startswith("data-") or key in ("title", "alt", "aria-label")):
+                          self.attrs.append({"tag": tag, "name": key, "value": value})
+                  style = data.get("style", "")
+                  self.images.extend(re.findall(r'url\([\'\"]?([^\)\'\"]+)', style))
+              def handle_data(self, data):
+                  value = " ".join(data.split())
+                  if value:
+                      self.text.append(value)
+
+          p = Parser()
+          p.feed(html)
+
+          def normalize(values):
+              out = []
+              seen = set()
+              for value in values:
+                  if not value or value.startswith("data:") or value.startswith("blob:"):
+                      continue
+                  absolute = urljoin(base, value)
+                  if absolute not in seen:
+                      seen.add(absolute)
+                      out.append(absolute)
+              return out
+
+          images = normalize(p.images)
+          links = normalize(p.links)
+          catalog_links = [
+              u for u in links
+              if urlparse(u).netloc == urlparse(base).netloc and "/catalog" in urlparse(u).path
+          ]
+
+          payload = {
+              "source": base,
+              "images": images,
+              "links": links,
+              "catalogLinks": catalog_links,
+              "attributes": p.attrs,
+              "text": p.text,
+          }
+          Path("catalog-audit/catalog-extract.json").write_text(
+              json.dumps(payload, ensure_ascii=False, indent=2), "utf-8"
+          )
+          Path("catalog-audit/catalog-text.txt").write_text("\n".join(p.text), "utf-8")
+          print(f"images={len(images)} links={len(links)} catalog_links={len(catalog_links)} text_items={len(p.text)}")
+          PY
+
+      - name: Download referenced catalog images
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, hashlib, mimetypes, re
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          data = json.loads(Path("catalog-audit/catalog-extract.json").read_text("utf-8"))
+          manifest = []
+          for index, url in enumerate(data.get("images", []), start=1):
+              try:
+                  req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                  with urlopen(req, timeout=25) as response:
+                      raw = response.read()
+                      ctype = (response.headers.get("Content-Type") or "").split(";")[0].strip()
+                  if not raw:
+                      continue
+                  ext = mimetypes.guess_extension(ctype) or Path(url.split("?")[0]).suffix or ".bin"
+                  if ext == ".jpe":
+                      ext = ".jpg"
+                  sha = hashlib.sha256(raw).hexdigest()
+                  name = f"{index:03d}-{sha[:12]}{ext}"
+                  path = Path("catalog-audit/images") / name
+                  path.write_bytes(raw)
+                  manifest.append({
+                      "url": url,
+                      "file": str(path),
+                      "contentType": ctype,
+                      "bytes": len(raw),
+                      "sha256": sha,
+                  })
+              except Exception as exc:
+                  manifest.append({"url": url, "error": str(exc)})
+          Path("catalog-audit/image-manifest.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2), "utf-8"
+          )
+          print(f"manifest_records={len(manifest)} downloaded={sum('file' in x for x in manifest)}")
+          PY
+
+      - name: Upload catalog audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-source-audit
+          path: catalog-audit/
+          if-no-files-found: error
+          retention-days: 14
