@@ -156,8 +156,12 @@ function OrthodoxPortal({ stele }: { stele: MemorialStele }) {
     [headerDepth, headerHeight, width],
   )
 
-  const finialY = height * 0.82
-  const crossBaseY = height * 0.84
+  const finialRadius = width * 0.045
+  const headerTop = headerBottom + headerHeight
+  // Keep the finial physically seated on the curved header and the cross
+  // slightly embedded into the finial so the source-backed assembly cannot float.
+  const finialY = headerTop + finialRadius * 0.82
+  const crossBaseY = finialY + finialRadius * 0.82
   const crossHeight = height * 0.15
   const crossDepth = Math.min(depth * 0.45, width * 0.045)
 
@@ -198,7 +202,7 @@ function OrthodoxPortal({ stele }: { stele: MemorialStele }) {
       ))}
 
       <StoneGeometry geometry={header} position={[0, headerBottom, 0]} stele={stele} />
-      <StoneSphere stele={stele} radius={width * 0.045} position={[0, finialY, 0]} />
+      <StoneSphere stele={stele} radius={finialRadius} position={[0, finialY, 0]} />
 
       <StoneBox
         stele={stele}
