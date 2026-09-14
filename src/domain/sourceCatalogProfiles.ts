@@ -2,6 +2,7 @@ import { createDefaultProject, normalizeProject, type MemorialProject } from './
 import { SOURCE_CATALOG_RAW_PART_1 } from './sourceCatalogProfiles.part1.ts'
 import { SOURCE_CATALOG_RAW_PART_2 } from './sourceCatalogProfiles.part2.ts'
 import { SOURCE_CATALOG_RAW_FAMILY } from './sourceCatalogProfiles.family.ts'
+import { SOURCE_CATALOG_RAW_ELITE } from './sourceCatalogProfiles.elite.ts'
 import { getSourceStoneMaterial, resolveSourceStoneCodes } from './sourceStoneMaterials.ts'
 import type {
   SourceCatalogCategory,
@@ -15,6 +16,7 @@ const RAW_SOURCE_CATALOG = [
   ...SOURCE_CATALOG_RAW_PART_1,
   ...SOURCE_CATALOG_RAW_PART_2,
   ...SOURCE_CATALOG_RAW_FAMILY,
+  ...SOURCE_CATALOG_RAW_ELITE,
 ] as const satisfies readonly SourceCatalogRawProfileTuple[]
 
 function sourceCategoryFor(id: SourceCatalogProfileId): SourceCatalogCategory {
