@@ -3,9 +3,11 @@ import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from '../domain/catalog'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
-  createDefaultStele,
+  addFamilyStele,
+  FAMILY_UI_MAX_STELES,
   getVisibleSteles,
   normalizeProject,
+  removeFamilyStele,
   withLayout,
   type MemorialProject,
   type MemorialStele,
@@ -96,7 +98,7 @@ export function ConfiguratorPanel({
       inscription: { ...stele.inscription, ...patch },
     }))
 
-  const setLayout = (type: 'single' | 'paired') => {
+  const setLayout = (type: 'single' | 'paired' | 'family') => {
     onChange(withLayout(project, type))
     setActiveSteleIndex(0)
   }
@@ -146,15 +148,17 @@ export function ConfiguratorPanel({
     setActiveSteleIndex(0)
   }
 
-  const addFamilySteleForImportedFamily = () => {
-    if (project.steles.length >= 6) return
-    const next = createDefaultStele(`stele-${project.steles.length + 1}`)
-    onChange(normalizeProject({
-      ...project,
-      layout: { ...project.layout, type: 'family' },
-      steles: [...project.steles, next],
-    }))
-    setActiveSteleIndex(project.steles.length)
+  const addFamily = () => {
+    const next = addFamilyStele(project)
+    onChange(next)
+    setActiveSteleIndex(Math.min(next.steles.length - 1, FAMILY_UI_MAX_STELES - 1))
+  }
+
+  const removeActiveFamily = () => {
+    const next = removeFamilyStele(project, activeStele.id)
+    onChange(next)
+    const nextVisible = getVisibleSteles(next)
+    setActiveSteleIndex(Math.min(safeIndex, Math.max(0, nextVisible.length - 1)))
   }
 
   return (
@@ -176,14 +180,23 @@ export function ConfiguratorPanel({
         <div className="layout-grid">
           <button className={project.layout.type === 'single' ? 'toggle active' : 'toggle'} onClick={() => setLayout('single')}>Одиночный</button>
           <button className={project.layout.type === 'paired' ? 'toggle active' : 'toggle'} onClick={() => setLayout('paired')}>Парный</button>
+          <button className={project.layout.type === 'family' ? 'toggle active' : 'toggle'} onClick={() => setLayout('family')}>Семейный</button>
         </div>
         {project.layout.type !== 'single' && numberField('Расстояние, м', project.layout.gapM, 0.04, 0.8, 0.02, (v) =>
           onChange(normalizeProject({ ...project, layout: { ...project.layout, gapM: v } }))
         )}
         {project.layout.type === 'family' && (
-          <button className="secondary-action" onClick={addFamilySteleForImportedFamily} disabled={project.steles.length >= 6}>
-            Добавить стелу
-          </button>
+          <>
+            <div className="family-actions">
+              <button className="secondary-action" onClick={addFamily} disabled={visibleSteles.length >= FAMILY_UI_MAX_STELES}>
+                Добавить стелу
+              </button>
+              <button className="secondary-action" onClick={removeActiveFamily} disabled={visibleSteles.length <= 3}>
+                Удалить выбранную
+              </button>
+            </div>
+            <p className="field-hint">В редакторе поддерживается до {FAMILY_UI_MAX_STELES} стел в семейной композиции.</p>
+          </>
         )}
       </section>
 

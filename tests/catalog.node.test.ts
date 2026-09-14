@@ -41,6 +41,10 @@ test('presets create valid current-schema projects including paired variants', (
     assert.equal(project.schemaVersion, 4)
   }
   assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'paired-classic' && preset.create().steles.length >= 2))
+  const family = PROJECT_PRESETS.find((preset) => preset.id === 'family-classic')?.create()
+  assert.equal(family?.layout.type, 'family')
+  assert.equal(family?.steles.length, 3)
+  assert.ok((family?.plot.widthM ?? 0) >= 3)
 })
 
 test('compatibility validation catches a composition that is too wide for its plot', () => {

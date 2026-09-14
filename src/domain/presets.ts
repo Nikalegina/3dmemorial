@@ -13,6 +13,7 @@ export type ProjectPresetId =
   | 'paired-classic'
   | 'paired-glass'
   | 'paired-muslim'
+  | 'family-classic'
 
 export interface ProjectPreset {
   id: ProjectPresetId
@@ -27,6 +28,20 @@ function withId(project: MemorialProject, presetId: ProjectPresetId): MemorialPr
 
 function pairedBase(): MemorialProject {
   return withLayout(createDefaultProject(), 'paired')
+}
+
+function familyBase(): MemorialProject {
+  const project = withLayout(createDefaultProject(), 'family')
+  project.plot.widthM = 3.2
+  project.layout.gapM = 0.12
+  project.steles[0].monument.widthM = 0.56
+  project.steles[0].monument.heightM = 1.16
+  project.steles[1].monument.widthM = 0.62
+  project.steles[1].monument.heightM = 1.34
+  project.steles[1].monument.shape = 'ogee'
+  project.steles[2].monument.widthM = 0.56
+  project.steles[2].monument.heightM = 1.16
+  return normalizeProject(project)
 }
 
 export const PROJECT_PRESETS: readonly ProjectPreset[] = [
@@ -98,6 +113,12 @@ export const PROJECT_PRESETS: readonly ProjectPreset[] = [
       if (project.steles.length < 2) project.steles.push(secondary)
       return withId(project, 'paired-muslim')
     },
+  },
+  {
+    id: 'family-classic',
+    name: 'Семейный комплекс',
+    description: 'Три гранитные стелы на общей композиции с увеличенным участком.',
+    create: () => withId(familyBase(), 'family-classic'),
   },
 ] as const
 
