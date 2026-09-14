@@ -43,7 +43,7 @@ export const ELITE_CATALOG_MODELS: readonly EliteCatalogModel[] = [
   one('1', 25, 1300, 1100, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Полнообъёмная фигура ангела, сердце и розы требуют скульптурного ассета.'),
   one('2', 25, 1300, 1050, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Фигура и птица выступают из плоскости стелы и требуют скульптурного ассета.'),
   one('3', 25, 1180, 1300, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Крупная фигура ангела и крыло являются объёмным декором.'),
-  one('4', 25, 1630, 1180, 200, ['K06', 'K05', 'K10', 'K11'], 'procedural-compound', 'Открытая арка с двумя стойками и верхним архивольтом должна собираться из отдельных тел, а не сплошной экструзией.'),
+  one('4', 25, 1630, 1180, 200, ['K06', 'K05', 'K10', 'K11'], 'procedural-compound', 'Открытая арка с двумя стойками и верхним архивольтом должна собираться из отдельных тел, а не сплошной экструзией.', 'ermis-elite-4'),
   one('5', 25, 1300, 1100, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Фигура ангела, сердце и розы требуют скульптурного ассета.'),
   one('6', 25, 1300, 1100, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Боковая фигура и рельефный декор требуют скульптурного ассета.'),
   one('7', 25, 1200, 1100, 100, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Органическая форма дополнена выраженным цветочным рельефом.'),
@@ -58,7 +58,7 @@ export const ELITE_CATALOG_MODELS: readonly EliteCatalogModel[] = [
   one('18', 26, 1300, 1000, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Фигура святого и крест являются отдельным скульптурным декором.'),
   one('19', 26, 1500, 700, 150, ['K06', 'K05', 'K10', 'K11'], 'profile-extrusion', 'Основной объём — цельная стела без обязательного скульптурного декора; допустима профильная реконструкция по рендеру.', 'ermis-elite-19'),
   one('21', 26, 1300, 900, 120, ['K06', 'K05', 'K10', 'K11'], 'glb-required', 'Фигура святого стоит на отдельном постаменте перед основной плитой.'),
-  one('22', 27, 2000, 1200, 200, ['K13', 'K06'], 'procedural-compound', 'Открытая арка состоит из двух стоек, основания и криволинейного верхнего элемента.'),
+  one('22', 27, 2000, 1200, 200, ['K13', 'K06'], 'procedural-compound', 'Открытая арка состоит из двух стоек, основания и криволинейного верхнего элемента.', 'ermis-elite-22'),
   {
     id: 'elite-24',
     sourceModel: '24',
@@ -69,8 +69,9 @@ export const ELITE_CATALOG_MODELS: readonly EliteCatalogModel[] = [
     ],
     strategy: 'procedural-compound',
     rationale: 'Колонны, верхняя перемычка и православный крест требуют составной параметрической геометрии.',
+    runtimeProfileId: 'ermis-elite-24',
   },
-  one('25', 27, 1200, 1500, 250, ['K14'], 'procedural-compound', 'Основная плита заключена в портал из колонн, основания и верхней балки.'),
+  one('25', 27, 1200, 1500, 250, ['K14'], 'procedural-compound', 'Основная плита заключена в портал из колонн, основания и верхней балки.', 'ermis-elite-25'),
 ]
 
 export const ELITE_CATALOG_MODEL_COUNT = ELITE_CATALOG_MODELS.length
@@ -83,4 +84,19 @@ export const ELITE_CATALOG_STRATEGY_COUNTS = {
 
 export function getEliteCatalogModel(sourceModel: string): EliteCatalogModel | null {
   return ELITE_CATALOG_MODELS.find((item) => item.sourceModel === sourceModel) ?? null
+}
+
+
+export function getEliteCatalogModelByRuntimeProfileId(profileId: string): EliteCatalogModel | null {
+  return ELITE_CATALOG_MODELS.find((item) => item.runtimeProfileId === profileId) ?? null
+}
+
+export function getEliteRuntimeStrategy(profileId: string): EliteModelingStrategy | null {
+  return getEliteCatalogModelByRuntimeProfileId(profileId)?.strategy ?? null
+}
+
+export function eliteModelSupportsFaceArtwork(profileId: string): boolean {
+  const model = getEliteCatalogModelByRuntimeProfileId(profileId)
+  if (!model) return true
+  return model.sourceModel === '19' || model.sourceModel === '25'
 }
