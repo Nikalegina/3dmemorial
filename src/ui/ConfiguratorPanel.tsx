@@ -84,7 +84,7 @@ export function ConfiguratorPanel({
   shareOmitsPortrait,
 }: Props) {
   const [activeSteleIndex, setActiveSteleIndex] = useState(0)
-  const [catalogProfileId, setCatalogProfileId] = useState(SOURCE_CATALOG_PROFILES[0]?.id ?? '')
+  const [catalogProfileId, setCatalogProfileId] = useState<string>(SOURCE_CATALOG_PROFILES[0]?.id ?? '')
   const visibleSteles = getVisibleSteles(project)
   const safeIndex = Math.min(activeSteleIndex, Math.max(0, visibleSteles.length - 1))
   const activeStele = visibleSteles[safeIndex] ?? project.steles[0]
