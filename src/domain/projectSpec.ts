@@ -1,5 +1,6 @@
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from './catalog.ts'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
+import { INSCRIPTION_SYMBOLS, INSCRIPTION_TYPOGRAPHY } from './inscriptionCatalog.ts'
 import { getVisibleSteles, type MemorialProject } from './memorialProject.ts'
 
 export interface ProjectSpecRow {
@@ -23,6 +24,12 @@ const constructionNames: Record<string, string> = {
   gabbro: 'Гранит',
   glass: 'Стекло',
   hybrid: 'Гранит + стекло',
+}
+
+const alignmentNames: Record<string, string> = {
+  left: 'Слева',
+  center: 'По центру',
+  right: 'Справа',
 }
 
 function catalogName<T extends readonly { id: string; name: string }[]>(catalog: T, id: string): string {
@@ -59,6 +66,16 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
           { label: 'Имя', value: stele.inscription.name || '—' },
           { label: 'Даты', value: stele.inscription.dates || '—' },
           { label: 'Эпитафия', value: stele.inscription.epitaph || '—' },
+          { label: 'Стиль текста', value: catalogName(INSCRIPTION_TYPOGRAPHY, stele.inscription.typographyId) },
+          { label: 'Выравнивание', value: alignmentNames[stele.inscription.align] ?? stele.inscription.align },
+          { label: 'Масштаб текста', value: `${Math.round(stele.inscription.textScale * 100)}%` },
+          { label: 'Символ', value: catalogName(INSCRIPTION_SYMBOLS, stele.inscription.symbolId) },
+          {
+            label: 'Положение символа',
+            value: stele.inscription.symbolId === 'none'
+              ? '—'
+              : stele.inscription.symbolPlacement === 'top' ? 'Над текстом' : 'Под текстом',
+          },
         ],
       },
     ]

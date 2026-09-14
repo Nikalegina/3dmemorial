@@ -2,11 +2,16 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from '../domain/catalog'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
+import { INSCRIPTION_SYMBOLS, INSCRIPTION_TYPOGRAPHY } from '../domain/inscriptionCatalog'
 import {
   createDefaultStele,
   getVisibleSteles,
   normalizeProject,
   withLayout,
+  type InscriptionAlign,
+  type InscriptionSymbolId,
+  type InscriptionSymbolPlacement,
+  type InscriptionTypographyId,
   type MemorialProject,
   type MemorialStele,
   type MonumentMaterial,
@@ -165,7 +170,7 @@ export function ConfiguratorPanel({
     <aside className="panel">
       <div className="brand">
         <strong>КРЫМ МОНУМЕНТ</strong>
-        <span>Memorial 3D Studio / Gate 7</span>
+        <span>Memorial 3D Studio / Gate 8</span>
       </div>
 
       <div className="history-toolbar" aria-label="История изменений">
@@ -295,7 +300,7 @@ export function ConfiguratorPanel({
       </section>
 
       <section>
-        <h2>Надпись</h2>
+        <h2>Надпись и символ</h2>
         <label className="text-field">
           <span>Имя</span>
           <input value={activeStele.inscription.name} maxLength={80} onChange={(e) => patchInscription({ name: e.target.value })} />
@@ -308,6 +313,57 @@ export function ConfiguratorPanel({
           <span>Эпитафия</span>
           <input value={activeStele.inscription.epitaph} maxLength={120} onChange={(e) => patchInscription({ epitaph: e.target.value })} />
         </label>
+
+        <label className="field">
+          <span>Стиль текста</span>
+          <select
+            value={activeStele.inscription.typographyId}
+            onChange={(e) => patchInscription({ typographyId: e.target.value as InscriptionTypographyId })}
+          >
+            {INSCRIPTION_TYPOGRAPHY.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Выравнивание</span>
+          <select
+            value={activeStele.inscription.align}
+            onChange={(e) => patchInscription({ align: e.target.value as InscriptionAlign })}
+          >
+            <option value="center">По центру</option>
+            <option value="left">Слева</option>
+            <option value="right">Справа</option>
+          </select>
+        </label>
+
+        {slider('Масштаб текста', activeStele.inscription.textScale, 0.75, 1.35, 0.05, (v) => patchInscription({ textScale: v }))}
+
+        <label className="field">
+          <span>Символ</span>
+          <select
+            value={activeStele.inscription.symbolId}
+            onChange={(e) => patchInscription({ symbolId: e.target.value as InscriptionSymbolId })}
+          >
+            {INSCRIPTION_SYMBOLS.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
+          </select>
+        </label>
+
+        {activeStele.inscription.symbolId !== 'none' && (
+          <label className="field">
+            <span>Положение символа</span>
+            <select
+              value={activeStele.inscription.symbolPlacement}
+              onChange={(e) => patchInscription({ symbolPlacement: e.target.value as InscriptionSymbolPlacement })}
+            >
+              <option value="top">Над текстом</option>
+              <option value="bottom">Под текстом</option>
+            </select>
+          </label>
+        )}
+
+        <p className="share-note">
+          Шрифты и символы используются для предварительной визуализации. Производственный макет подтверждается отдельно.
+        </p>
       </section>
 
       <section>

@@ -42,6 +42,24 @@ export type SurfaceMaterialId =
 export type PortraitMode = 'color' | 'bw' | 'engraving'
 export type LayoutType = 'single' | 'paired' | 'family'
 
+export type InscriptionTypographyId =
+  | 'classic-serif'
+  | 'traditional-serif'
+  | 'clean-sans'
+  | 'humanist-sans'
+
+export type InscriptionAlign = 'left' | 'center' | 'right'
+
+export type InscriptionSymbolId =
+  | 'none'
+  | 'orthodox-cross'
+  | 'latin-cross'
+  | 'crescent-star'
+  | 'rose'
+  | 'laurel'
+
+export type InscriptionSymbolPlacement = 'top' | 'bottom'
+
 export interface MonumentConfig {
   shape: MonumentShape
   material: MonumentMaterial
@@ -64,6 +82,18 @@ export interface InscriptionConfig {
   name: string
   dates: string
   epitaph: string
+  typographyId: InscriptionTypographyId
+  align: InscriptionAlign
+  textScale: number
+  symbolId: InscriptionSymbolId
+  symbolPlacement: InscriptionSymbolPlacement
+}
+
+interface LegacyInscriptionConfig {
+  enabled: boolean
+  name: string
+  dates: string
+  epitaph: string
 }
 
 export interface MemorialStele {
@@ -73,8 +103,15 @@ export interface MemorialStele {
   inscription: InscriptionConfig
 }
 
+interface LegacyMemorialSteleV4 {
+  id: string
+  monument: MonumentConfig
+  portrait: PortraitConfig
+  inscription: LegacyInscriptionConfig
+}
+
 export interface MemorialProject {
-  schemaVersion: 4
+  schemaVersion: 5
   projectId: string
   layout: {
     type: LayoutType
@@ -116,7 +153,7 @@ interface LegacyProjectV2 {
   plot: MemorialProject['plot']
   monument: MonumentConfig
   portrait: PortraitConfig
-  inscription: InscriptionConfig
+  inscription: LegacyInscriptionConfig
   flowerBed: { enabled: boolean }
   plinth: { enabled: boolean }
   paving: { enabled: boolean }
@@ -132,7 +169,7 @@ interface LegacyProjectV3 {
   plot: MemorialProject['plot']
   monument: MonumentConfig
   portrait: PortraitConfig
-  inscription: InscriptionConfig
+  inscription: LegacyInscriptionConfig
   flowerBed: MemorialProject['flowerBed']
   plinth: MemorialProject['plinth']
   paving: MemorialProject['paving']
@@ -143,8 +180,40 @@ interface LegacyProjectV3 {
   vase: MemorialProject['vase']
 }
 
-export const PROJECT_SCHEMA_VERSION = 4 as const
+interface LegacyProjectV4 {
+  schemaVersion: 4
+  projectId: string
+  layout: MemorialProject['layout']
+  steles: LegacyMemorialSteleV4[]
+  plot: MemorialProject['plot']
+  flowerBed: MemorialProject['flowerBed']
+  plinth: MemorialProject['plinth']
+  paving: MemorialProject['paving']
+  border: MemorialProject['border']
+  fence: MemorialProject['fence']
+  bench: MemorialProject['bench']
+  table: MemorialProject['table']
+  vase: MemorialProject['vase']
+}
+
+export const PROJECT_SCHEMA_VERSION = 5 as const
 export const MAX_SUPPORTED_STELES = 6
+
+const TYPOGRAPHY_IDS = new Set<InscriptionTypographyId>([
+  'classic-serif',
+  'traditional-serif',
+  'clean-sans',
+  'humanist-sans',
+])
+
+const SYMBOL_IDS = new Set<InscriptionSymbolId>([
+  'none',
+  'orthodox-cross',
+  'latin-cross',
+  'crescent-star',
+  'rose',
+  'laurel',
+])
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
@@ -159,6 +228,34 @@ function normalizeSurface(material: MonumentMaterial, surfaceId: SurfaceMaterial
   return material === 'glass'
     ? (surfaceId.startsWith('glass-') ? surfaceId : 'glass-clear')
     : (stoneSurface ? surfaceId : 'gabbro-polished')
+}
+
+function normalizeInscription(input: Partial<InscriptionConfig> & LegacyInscriptionConfig): InscriptionConfig {
+  const typographyId = TYPOGRAPHY_IDS.has(input.typographyId as InscriptionTypographyId)
+    ? input.typographyId as InscriptionTypographyId
+    : 'classic-serif'
+
+  const align: InscriptionAlign = input.align === 'left' || input.align === 'right' || input.align === 'center'
+    ? input.align
+    : 'center'
+
+  const symbolId = SYMBOL_IDS.has(input.symbolId as InscriptionSymbolId)
+    ? input.symbolId as InscriptionSymbolId
+    : 'none'
+
+  const symbolPlacement: InscriptionSymbolPlacement = input.symbolPlacement === 'bottom' ? 'bottom' : 'top'
+
+  return {
+    enabled: input.enabled !== false,
+    name: typeof input.name === 'string' ? input.name.slice(0, 80) : '',
+    dates: typeof input.dates === 'string' ? input.dates.slice(0, 40) : '',
+    epitaph: typeof input.epitaph === 'string' ? input.epitaph.slice(0, 120) : '',
+    typographyId,
+    align,
+    textScale: clamp(typeof input.textScale === 'number' ? input.textScale : 1, 0.75, 1.35),
+    symbolId,
+    symbolPlacement,
+  }
 }
 
 export function createDefaultStele(id = 'primary'): MemorialStele {
@@ -178,11 +275,16 @@ export function createDefaultStele(id = 'primary'): MemorialStele {
       name: 'ИМЯ ФАМИЛИЯ',
       dates: '19XX — 20XX',
       epitaph: '',
+      typographyId: 'classic-serif',
+      align: 'center',
+      textScale: 1,
+      symbolId: 'none',
+      symbolPlacement: 'top',
     },
   }
 }
 
-function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele {
+function normalizeStele(input: MemorialStele | LegacyMemorialSteleV4, fallbackId: string): MemorialStele {
   const id = typeof input.id === 'string' && input.id.trim() ? input.id.trim() : fallbackId
   return {
     ...input,
@@ -200,6 +302,7 @@ function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele
       offsetY: clamp(input.portrait.offsetY, -1, 1),
       zoom: clamp(input.portrait.zoom, 1, 3),
     },
+    inscription: normalizeInscription(input.inscription),
   }
 }
 
@@ -319,9 +422,20 @@ export function withLayout(project: MemorialProject, type: LayoutType): Memorial
   return normalizeProject(next)
 }
 
-export function migrateProjectV3(input: LegacyProjectV3): MemorialProject {
+export function migrateProjectV4(input: LegacyProjectV4): MemorialProject {
   return normalizeProject({
+    ...input,
     schemaVersion: PROJECT_SCHEMA_VERSION,
+    steles: input.steles.map((stele) => ({
+      ...stele,
+      inscription: normalizeInscription(stele.inscription),
+    })),
+  })
+}
+
+export function migrateProjectV3(input: LegacyProjectV3): MemorialProject {
+  return migrateProjectV4({
+    schemaVersion: 4,
     projectId: input.projectId,
     layout: { type: 'single', gapM: 0.16 },
     steles: [{
@@ -390,6 +504,7 @@ export function parseProject(raw: string): MemorialProject {
   if (parsed.schemaVersion === 1) return migrateProjectV1(parsed as LegacyProjectV1)
   if (parsed.schemaVersion === 2) return migrateProjectV2(parsed as LegacyProjectV2)
   if (parsed.schemaVersion === 3) return migrateProjectV3(parsed as LegacyProjectV3)
+  if (parsed.schemaVersion === 4) return migrateProjectV4(parsed as LegacyProjectV4)
   if (parsed.schemaVersion !== PROJECT_SCHEMA_VERSION) {
     throw new Error(`Unsupported project schema: ${String(parsed.schemaVersion)}`)
   }
