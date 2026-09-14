@@ -10,3 +10,12 @@ coverage/
 public/uploads/
 
 *.tsbuildinfo
+
+# Production source/runtime binaries are managed outside this public repository.
+assets/raw/
+assets/source/
+public/assets/runtime/
+*.blend
+*.fbx
+*.obj
+*.mtl

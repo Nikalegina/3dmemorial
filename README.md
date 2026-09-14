@@ -13,7 +13,8 @@ Independent web application for configuring and presenting complete memorial com
 - managed paving, border, fence, bench, table, vase, flower-bed and plinth variants;
 - versioned project schema with migrations;
 - local save, JSON export, PNG render export and privacy-safe share links;
-- controlled asset registry and license validation.
+- controlled asset registry and license validation;
+- fail-closed production asset manifest/index pipeline for models, textures and fonts.
 
 ## Local development
 
@@ -34,6 +35,8 @@ Dependency-free domain verification:
 ```bash
 npm run test:domain
 npm run validate:assets
+npm run validate:production-assets
+npm run check:asset-index
 ```
 
 ## Architecture boundaries
@@ -44,4 +47,4 @@ npm run validate:assets
 - Do not persist a raw Three.js scene; persist versioned configuration.
 - Do not couple pricing to the editor until a canonical price/BOM authority exists.
 
-See `docs/ROADMAP.md` and the gate reports under `docs/`.
+See `docs/ROADMAP.md`, `docs/PRODUCTION-ASSET-PIPELINE.md` and the gate reports under `docs/`.
