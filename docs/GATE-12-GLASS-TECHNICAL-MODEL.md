@@ -42,6 +42,11 @@ When a stele uses glass, the editor shows a dedicated technical section for:
 
 Generic stone thickness editing is hidden for glass.
 
+## Rendering fidelity
+- glass material optical thickness now follows the configured physical 12/16 mm panel thickness;
+- portrait/inscription planes for glass are positioned just inside the front glass face instead of floating in front of the panel;
+- stone rendering retains its existing front-face offset.
+
 ## Output
 Share URL, JSON, PDF specification and quote handoff all carry schema v6 glass technical data.
 PDF specifications include the glass construction fields but no supplier prices.

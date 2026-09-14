@@ -36,13 +36,15 @@ function SteleMonument({
   }, [edges, geometry])
 
   const surface = getMaterialDefinition(monument.surfaceId)
-  const faceZ = monument.depthM / 2 + 0.013
   const isGlass = surface.kind === 'glass'
+  const faceZ = isGlass
+    ? Math.max(0.0005, monument.depthM / 2 - 0.0008)
+    : monument.depthM / 2 + 0.013
 
   return (
     <group position={[x, baseHeight, 0]}>
       <mesh geometry={geometry} castShadow receiveShadow>
-        <SteleSurfaceMaterial definition={surface} />
+        <SteleSurfaceMaterial definition={surface} physicalThickness={monument.depthM} />
       </mesh>
 
       <lineSegments geometry={edges} renderOrder={3}>
@@ -77,7 +79,7 @@ function SteleMonument({
       {stele.portrait.enabled && (
         <PortraitPlane url={portraitUrl} stele={stele} z={faceZ} />
       )}
-      <InscriptionPlane stele={stele} z={faceZ + 0.0015} />
+      <InscriptionPlane stele={stele} z={faceZ + (isGlass ? 0.00015 : 0.0015)} />
     </group>
   )
 }
