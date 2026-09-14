@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import type { MonumentShape } from '../domain/memorialProject'
-import { getSourceCatalogProfile, isSourceCatalogProfileId } from '../domain/sourceCatalogProfiles'
+import { getSourceCatalogProfile, isSourceCatalogProfileId } from '../domain/sourceCatalogProfiles.ts'
 
 function buildProfile(width: number, height: number, shapeKind: MonumentShape): THREE.Shape {
   const shape = new THREE.Shape()
