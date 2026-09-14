@@ -1,7 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
 import { CATALOG_PRODUCT_FAMILIES } from '../domain/catalogProducts'
-import { ELITE_CATALOG_MODEL_COUNT, ELITE_CATALOG_STRATEGY_COUNTS } from '../domain/eliteCatalog'
+import { ELITE_CATALOG_MODEL_COUNT, ELITE_CATALOG_STRATEGY_COUNTS, getEliteCatalogModelByRuntimeProfileId } from '../domain/eliteCatalog'
 import type { SourceCatalogCategory } from '../domain/sourceCatalogProfileTypes'
 import {
   SOURCE_CATALOG_PROFILES,
@@ -101,6 +101,9 @@ export function ConfiguratorPanel({
   const sourceCatalogVariantIndex = sourceCatalogProfile
     ? findSourceCatalogVariantIndex(sourceCatalogProfile, activeStele.monument)
     : -1
+  const eliteRuntimeModel = sourceCatalogProfile?.sourceCategory === 'elite'
+    ? getEliteCatalogModelByRuntimeProfileId(sourceCatalogProfile.id)
+    : null
   const sourceCatalogVariant = sourceCatalogProfile && sourceCatalogVariantIndex >= 0
     ? sourceCatalogProfile.variants[sourceCatalogVariantIndex]
     : null
@@ -346,7 +349,7 @@ export function ConfiguratorPanel({
         </label>
         {catalogCategory === 'elite' && (
           <p className="field-hint" data-elite-catalog-summary="true">
-            В исходном каталоге {ELITE_CATALOG_MODEL_COUNT} модель элитного раздела: {ELITE_CATALOG_STRATEGY_COUNTS.profileExtrusion} допускает профильную 3D-реконструкцию, {ELITE_CATALOG_STRATEGY_COUNTS.proceduralCompound} требуют составной процедурной геометрии, {ELITE_CATALOG_STRATEGY_COUNTS.glbRequired} требуют отдельных скульптурных GLB-ассетов. Сейчас в редакторе открыт только подтверждённый профиль № 19; скульптурные модели не подменяются плоской формой.
+            Элитный раздел: {ELITE_CATALOG_MODEL_COUNT} модель. В 3D доступны 5: № 19 как профильная стела и № 4, 22, 24, 25 как составные процедурные конструкции. Оставшиеся {ELITE_CATALOG_STRATEGY_COUNTS.glbRequired} скульптурных моделей будут подключаться отдельными GLB-ассетами и не подменяются плоскими формами.
           </p>
         )}
         <label className="field">
@@ -381,7 +384,7 @@ export function ConfiguratorPanel({
         >
           Открыть модель в 3D
         </button>
-        <p className="field-hint">106 доступных профильных форм и 226 подтверждённых размерных вариантов: 84 фигурные модели, 21 семейная стела и 1 элитная профильная модель. Полный элитный раздел содержит 21 модель; сложные скульптурные позиции подключаются только через отдельную составную/GLB-геометрию.</p>
+        <p className="field-hint">110 доступных исходных моделей и 231 подтверждённый размерный вариант: 84 фигурные, 21 семейная и 5 элитных. Для элитных № 4, 22, 24 и 25 используется отдельный составной 3D-рендерер; их вспомогательный контур в реестре не является видимой геометрией изделия.</p>
       </section>
 
       <section>
@@ -470,6 +473,13 @@ export function ConfiguratorPanel({
                 ? (sourceCatalogProfile.variants[sourceCatalogVariantIndex]?.materialCodes.join(', ') || 'не указаны')
                 : 'размер изменён вручную'}.
             </p>
+            {eliteRuntimeModel?.strategy === 'procedural-compound' && (
+              <p className="field-hint" data-elite-renderer="procedural-compound">
+                Составная процедурная 3D-конструкция: стойки, арка/перемычка, основание и декоративные архитектурные элементы моделируются отдельными объёмами. {eliteRuntimeModel.sourceModel === '25'
+                  ? 'Модель № 25 содержит центральную плиту для портрета и надписи.'
+                  : 'Это открытая архитектурная конструкция без центральной плиты, поэтому портрет и надпись на воздухе не визуализируются.'}
+              </p>
+            )}
 
             {sourceCatalogVariantIndex >= 0 && sourceStoneCodes.length > 0 && activeStele.monument.material !== 'glass' && (
               <>
