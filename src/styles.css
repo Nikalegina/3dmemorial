@@ -45,8 +45,8 @@ h2 { font-size: 15px; margin: 0 0 13px; }
 .export-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 @media (max-width: 460px) { .export-grid { grid-template-columns: 1fr; } }
 
-.layout-grid, .stele-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-.stele-tabs { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+.layout-grid, .stele-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stele-tabs { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
 .secondary-action { width: 100%; margin-top: 10px; border: 1px solid #c7c0b5; border-radius: 9px; padding: 9px; background: #fff; color: #38342f; }
 .secondary-action:disabled { opacity: .45; cursor: not-allowed; }
 
@@ -59,3 +59,8 @@ h2 { font-size: 15px; margin: 0 0 13px; }
 .rfq-actions { display: grid; gap: 8px; margin-top: 12px; }
 .rfq-actions button { border: 1px solid #c7c0b5; border-radius: 9px; padding: 11px; background: #fff; }
 .rfq-actions .primary { background: #1b1b1b; color: #fff; border-color: #1b1b1b; font-weight: 650; }
+
+.family-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.family-actions .secondary-action { margin-top: 0; }
+.family-actions .danger:not(:disabled) { color: #783b37; border-color: #cfaaa6; background: #fff8f7; }
+@media (max-width: 460px) { .layout-grid { grid-template-columns: 1fr; } .family-actions { grid-template-columns: 1fr; } }

@@ -4,7 +4,11 @@ import {
   createDefaultProject,
   getCompositionWidth,
   getSteleLayoutPositions,
+  addFamilyStele,
   getVisibleSteles,
+  MAX_FAMILY_EDITOR_STELES,
+  MIN_FAMILY_EDITOR_STELES,
+  removeFamilyStele,
   withLayout,
 } from '../src/domain/memorialProject.ts'
 
@@ -49,4 +53,52 @@ test('switching back to single preserves the secondary stele for reversible edit
 
   project = withLayout(project, 'paired')
   assert.equal(getVisibleSteles(project)[1].inscription.name, 'НЕ ТЕРЯТЬ')
+})
+
+
+test('family layout starts with three steles and supports a bounded fourth', () => {
+  let project = withLayout(createDefaultProject(), 'family')
+  assert.equal(project.layout.type, 'family')
+  assert.equal(getVisibleSteles(project).length, MIN_FAMILY_EDITOR_STELES)
+
+  project = addFamilyStele(project)
+  assert.equal(getVisibleSteles(project).length, MAX_FAMILY_EDITOR_STELES)
+
+  project = addFamilyStele(project)
+  assert.equal(getVisibleSteles(project).length, MAX_FAMILY_EDITOR_STELES)
+})
+
+test('family removal is explicit and never drops below three steles', () => {
+  let project = addFamilyStele(withLayout(createDefaultProject(), 'family'))
+  const removedId = project.steles[1].id
+  project = removeFamilyStele(project, removedId)
+  assert.equal(project.steles.length, 3)
+  assert.equal(project.steles.some((stele) => stele.id === removedId), false)
+
+  const protectedId = project.steles[0].id
+  project = removeFamilyStele(project, protectedId)
+  assert.equal(project.steles.length, 3)
+  assert.equal(project.steles.some((stele) => stele.id === protectedId), true)
+})
+
+test('family positions stay centered and preserve edge gaps across three monuments', () => {
+  const project = withLayout(createDefaultProject(), 'family')
+  project.layout.gapM = 0.12
+  project.steles[0].monument.widthM = 0.5
+  project.steles[1].monument.widthM = 0.6
+  project.steles[2].monument.widthM = 0.55
+
+  const positions = getSteleLayoutPositions(project)
+  assert.equal(positions.length, 3)
+
+  for (let index = 0; index < positions.length - 1; index += 1) {
+    const right = positions[index].x + positions[index].stele.monument.widthM / 2
+    const left = positions[index + 1].x - positions[index + 1].stele.monument.widthM / 2
+    assert.ok(Math.abs((left - right) - 0.12) < 1e-9)
+  }
+
+  const leftEdge = positions[0].x - positions[0].stele.monument.widthM / 2
+  const last = positions[positions.length - 1]
+  const rightEdge = last.x + last.stele.monument.widthM / 2
+  assert.ok(Math.abs(leftEdge + rightEdge) < 1e-9)
 })
