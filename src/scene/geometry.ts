@@ -1,8 +1,21 @@
 import * as THREE from 'three'
 import type { MonumentShape } from '../domain/memorialProject'
+import { getSourceCatalogProfile, isSourceCatalogProfileId } from '../domain/sourceCatalogProfiles'
 
 function buildProfile(width: number, height: number, shapeKind: MonumentShape): THREE.Shape {
   const shape = new THREE.Shape()
+
+  if (isSourceCatalogProfileId(shapeKind)) {
+    const profile = getSourceCatalogProfile(shapeKind)
+    const [first, ...rest] = profile.points
+    if (!first || rest.length < 2) throw new Error(`Source catalog profile is invalid: ${shapeKind}`)
+
+    shape.moveTo(first[0] * width, first[1] * height)
+    for (const [x, y] of rest) shape.lineTo(x * width, y * height)
+    shape.closePath()
+    return shape
+  }
+
   const half = width / 2
   shape.moveTo(-half, 0)
   shape.lineTo(half, 0)
