@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDefaultProject, withLayout } from '../src/domain/memorialProject.ts'
+import { createSourceCatalogProject } from '../src/domain/sourceCatalogProfiles.ts'
 import { buildProjectSpecification } from '../src/domain/projectSpec.ts'
 
 test('single project specification exposes monument and complex without prices', () => {
@@ -68,4 +69,24 @@ test('project specification keeps inscription placeholders explicit', () => {
   assert.equal(inscription?.rows.find((row) => row.label === 'Оформление портрета')?.value, 'Овал')
   assert.equal(inscription?.rows.find((row) => row.label === 'Размер портрета')?.value, '110%')
   assert.equal(inscription?.rows.find((row) => row.label === 'Эпитафия')?.value, '—')
+})
+
+
+test('source catalog project specification exposes exact model and source stone provenance', () => {
+  const project = createSourceCatalogProject('ermis-105', 0)
+  const spec = buildProjectSpecification(project)
+  const monument = spec.sections.find((section) => section.title === 'Памятник')
+
+  assert.equal(monument?.rows.find((row) => row.label === 'Форма')?.value, 'Каталог № 105')
+  assert.equal(monument?.rows.find((row) => row.label === 'Поверхность')?.value, 'K02 · ROYAL GREEN')
+  assert.equal(monument?.rows.find((row) => row.label === 'Порода по каталогу')?.value, 'K02 · ROYAL GREEN')
+  assert.equal(monument?.rows.find((row) => row.label === 'Источник характеристик')?.value, 'Исходный каталог, стр. 4')
+})
+
+test('glass-panel flowerbed keeps its managed catalog name in specification', () => {
+  const project = createDefaultProject()
+  project.flowerBed.styleId = 'glass-panel-granite-frame'
+  const spec = buildProjectSpecification(project)
+  const complex = spec.sections.find((section) => section.title === 'Мемориальный комплекс')
+  assert.equal(complex?.rows.find((row) => row.label === 'Цветник')?.value, 'Стеклянная панель в гранитной рамке')
 })
