@@ -20,6 +20,8 @@ import {
 } from '../domain/memorialProject'
 import { PROJECT_PRESETS } from '../domain/presets'
 import type { RenderFormat } from '../export/projectExports'
+import type { RfqStartupSource } from '../domain/rfq'
+import { RfqPanel } from './RfqPanel'
 import type { CameraPreset } from '../scene/CameraControls'
 
 interface Props {
@@ -40,6 +42,11 @@ interface Props {
   onShare: () => void
   shareStatus: string | null
   shareOmitsPortrait: boolean
+  rfqShareUrl: string
+  rfqSourceSku: string | null
+  rfqPresetId: string | null
+  rfqStartupSource: RfqStartupSource
+  rfqLocalPortraitCount: number
 }
 
 export function ConfiguratorPanel({
@@ -60,6 +67,11 @@ export function ConfiguratorPanel({
   onShare,
   shareStatus,
   shareOmitsPortrait,
+  rfqShareUrl,
+  rfqSourceSku,
+  rfqPresetId,
+  rfqStartupSource,
+  rfqLocalPortraitCount,
 }: Props) {
   const [activeSteleIndex, setActiveSteleIndex] = useState(0)
   const visibleSteles = getVisibleSteles(project)
@@ -161,7 +173,7 @@ export function ConfiguratorPanel({
     <aside className="panel">
       <div className="brand">
         <strong>КРЫМ МОНУМЕНТ</strong>
-        <span>Memorial 3D Studio / Gate 8</span>
+        <span>Memorial 3D Studio / Gate 9</span>
       </div>
 
       <section>
@@ -444,6 +456,15 @@ export function ConfiguratorPanel({
         </div>
         {exportStatus && <p className="action-status">{exportStatus}</p>}
       </section>
+
+      <RfqPanel
+        project={project}
+        shareUrl={rfqShareUrl}
+        sourceSku={rfqSourceSku}
+        presetId={rfqPresetId}
+        startupSource={rfqStartupSource}
+        localPortraitCount={rfqLocalPortraitCount}
+      />
 
       <div className="actions">
         <button onClick={onShare}>Поделиться интерактивным проектом</button>
