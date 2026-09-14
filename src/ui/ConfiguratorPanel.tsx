@@ -401,7 +401,7 @@ export function ConfiguratorPanel({
 
         <h3>Комплектующие из исходного каталога</h3>
         <p className="field-hint">
-          ${SOURCE_COMPONENT_PRODUCT_COUNT} source-backed позиций со страниц 27–30: столы и лавки, надгробные плиты, плитка, вазы, аксессуары и гранитные ограды.
+          {SOURCE_COMPONENT_PRODUCT_COUNT} позиций со страниц 27–30: столы и лавки, надгробные плиты, плитка, вазы, аксессуары и гранитные ограды.
         </p>
         <label className="field">
           <span>Каталожная позиция</span>
