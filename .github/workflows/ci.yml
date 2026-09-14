@@ -262,6 +262,17 @@ jobs:
           grep -q 'Опора скамьи: 420 × 140 × 140 мм · K06' browser-artifacts/source-tsk50-dom.html
           browser_screenshot "$SOURCE_TSK50_URL" browser-artifacts/source-tsk50.png
 
+          SOURCE_TSR50_URL="http://127.0.0.1:4173/?component=ermis-tsr50"
+          browser_dump "$SOURCE_TSR50_URL" browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-component-id="ermis-tsr50"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-component-page="27"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-component-category="furniture-set"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-sku="TSR50"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-selected-source-component="ermis-tsr50"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'Столешница: 500 × 500 × 30 мм · K06' browser-artifacts/source-tsr50-dom.html
+          browser_screenshot "$SOURCE_TSR50_URL" browser-artifacts/source-tsr50.png
+
           SOURCE_SLAB_URL="http://127.0.0.1:4173/?component=ermis-grave-slab-1200x600"
           browser_dump "$SOURCE_SLAB_URL" browser-artifacts/source-slab-dom.html
           grep -q 'data-source-component-id="ermis-grave-slab-1200x600"' browser-artifacts/source-slab-dom.html
