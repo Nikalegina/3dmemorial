@@ -1,6 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
-import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
+import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, FLOWER_BED_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
   findStandardGlassSteleSize,
@@ -442,8 +442,7 @@ export function ConfiguratorPanel({
           <label className="field">
             <span>Цветник</span>
             <select value={project.flowerBed.styleId} onChange={(e) => onChange({ ...project, flowerBed: { ...project.flowerBed, styleId: e.target.value as MemorialProject['flowerBed']['styleId'] } })}>
-              <option value="open-granite">Открытый гранитный</option>
-              <option value="closed-granite">Закрытый гранитный</option>
+              {FLOWER_BED_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
             </select>
           </label>
         )}
