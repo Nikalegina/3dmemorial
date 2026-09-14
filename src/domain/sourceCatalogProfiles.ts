@@ -77,3 +77,18 @@ export const SOURCE_CATALOG_VARIANT_COUNT = SOURCE_CATALOG_PROFILES.reduce(
   (sum, profile) => sum + profile.variants.length,
   0,
 )
+
+
+export function findSourceCatalogVariantIndex(
+  profile: SourceCatalogProfile,
+  dimensions: { widthM: number; heightM: number; depthM: number },
+): number {
+  const widthMm = Math.round(dimensions.widthM * 1000)
+  const heightMm = Math.round(dimensions.heightM * 1000)
+  const depthMm = Math.round(dimensions.depthM * 1000)
+  return profile.variants.findIndex((variant) =>
+    variant.widthMm === widthMm
+    && variant.heightMm === heightMm
+    && variant.depthMm === depthMm
+  )
+}
