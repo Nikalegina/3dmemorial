@@ -208,7 +208,7 @@ jobs:
           grep -q 'data-source-stone-code="K06"' browser-artifacts/elite-19-dom.html
           grep -q 'Исходная модель № 19' browser-artifacts/elite-19-dom.html
           grep -q '1500 × 700 × 150 мм' browser-artifacts/elite-19-dom.html
-          grep -q 'скульптурные модели не подменяются плоской формой' browser-artifacts/elite-19-dom.html
+          grep -q 'не подменяются плоскими формами' browser-artifacts/elite-19-dom.html
           browser_screenshot "$ELITE_19_URL" browser-artifacts/catalog-elite-19.png
 
           ELITE_4_URL="http://127.0.0.1:4173/?profile=ermis-elite-4&variant=0&sourceSku=ELITE-4"
