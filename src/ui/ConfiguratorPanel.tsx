@@ -11,6 +11,14 @@ import {
   isSourceCatalogProfileId,
 } from '../domain/sourceCatalogProfiles'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, FLOWER_BED_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
+import {
+  SOURCE_COMPONENT_PRODUCTS,
+  SOURCE_COMPONENT_PRODUCT_COUNT,
+  formatSourcePartDimensions,
+  getSourceComponentProduct,
+  isSourceComponentProductId,
+} from '../domain/sourceComponentCatalog'
+import { createSourceComponentProject } from '../domain/sourceComponentProject'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
   findStandardGlassSteleSize,
@@ -90,6 +98,7 @@ export function ConfiguratorPanel({
   const [catalogProfileId, setCatalogProfileId] = useState<string>(SOURCE_CATALOG_PROFILES[0]?.id ?? '')
   const [catalogCategory, setCatalogCategory] = useState<SourceCatalogCategory>('figured')
   const [catalogQuery, setCatalogQuery] = useState('')
+  const [sourceComponentProductId, setSourceComponentProductId] = useState<string>('ermis-tsk50')
   const visibleSteles = getVisibleSteles(project)
   const safeIndex = Math.min(activeSteleIndex, Math.max(0, visibleSteles.length - 1))
   const activeStele = visibleSteles[safeIndex] ?? project.steles[0]
@@ -112,6 +121,10 @@ export function ConfiguratorPanel({
     : []
   const selectedSourceStone = activeStele.monument.sourceStoneCode
     ? getSourceStoneMaterial(activeStele.monument.sourceStoneCode)
+    : null
+  const selectedFenceStyle = FENCE_STYLES.find((item) => item.id === project.fence.styleId) ?? FENCE_STYLES[0]
+  const selectedSourceComponent = isSourceComponentProductId(sourceComponentProductId)
+    ? getSourceComponentProduct(sourceComponentProductId)
     : null
   const visibleCatalogProfiles = SOURCE_CATALOG_PROFILES.filter((profile) => {
     if (profile.sourceCategory !== catalogCategory) return false
@@ -385,6 +398,70 @@ export function ConfiguratorPanel({
           Открыть модель в 3D
         </button>
         <p className="field-hint">110 доступных исходных моделей и 231 подтверждённый размерный вариант: 84 фигурные, 21 семейная и 5 элитных. Для элитных № 4, 22, 24 и 25 используется отдельный составной 3D-рендерер; их вспомогательный контур в реестре не является видимой геометрией изделия.</p>
+
+        <h3>Комплектующие из исходного каталога</h3>
+        <p className="field-hint">
+          ${SOURCE_COMPONENT_PRODUCT_COUNT} source-backed позиций со страниц 27–30: столы и лавки, надгробные плиты, плитка, вазы, аксессуары и гранитные ограды.
+        </p>
+        <label className="field">
+          <span>Каталожная позиция</span>
+          <select
+            value={sourceComponentProductId}
+            data-selected-source-component={sourceComponentProductId}
+            onChange={(e) => setSourceComponentProductId(e.target.value)}
+          >
+            <optgroup label="Столы и лавки">
+              {SOURCE_COMPONENT_PRODUCTS.filter((item) => item.category === 'furniture-set').map((item) => (
+                <option key={item.id} value={item.id}>{item.sourceSku ?? 'Без артикула'} · {item.name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Надгробные плиты">
+              {SOURCE_COMPONENT_PRODUCTS.filter((item) => item.category === 'grave-slab').map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Плитка">
+              {SOURCE_COMPONENT_PRODUCTS.filter((item) => item.category === 'paving').map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Вазы">
+              {SOURCE_COMPONENT_PRODUCTS.filter((item) => item.category === 'vase').map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Аксессуары">
+              {SOURCE_COMPONENT_PRODUCTS.filter((item) => item.category === 'accessory').map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Гранитные ограды">
+              {SOURCE_COMPONENT_PRODUCTS.filter((item) => item.category === 'fence').map((item) => (
+                <option key={item.id} value={item.id}>{item.sourceSku ?? 'Без артикула'} · {item.name}</option>
+              ))}
+            </optgroup>
+          </select>
+        </label>
+        {selectedSourceComponent && (
+          <p className="field-hint" data-source-component-authority="catalog-pages-27-30">
+            Страница {selectedSourceComponent.sourcePage}
+            {selectedSourceComponent.sourceSku ? ` · артикул ${selectedSourceComponent.sourceSku}` : ' · артикул в источнике не указан'}.
+            {' '}{selectedSourceComponent.parts.map((part) => `${part.sourceName}: ${formatSourcePartDimensions(part)}`).join('; ')}.
+            {' '}{selectedSourceComponent.visualNotes}
+          </p>
+        )}
+        <button
+          className="secondary-action"
+          onClick={() => {
+            if (!isSourceComponentProductId(sourceComponentProductId)) return
+            applyPreset(() => createSourceComponentProject(sourceComponentProductId))
+          }}
+        >
+          Открыть комплектующее в 3D
+        </button>
+        <p className="field-hint">
+          Для надгробных плит и плитки каталог задаёт длину и ширину, но не толщину. В 3D используется только визуальная толщина; она не выдаётся за производственный размер.
+        </p>
       </section>
 
       <section>
@@ -690,12 +767,17 @@ export function ConfiguratorPanel({
               {FENCE_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
             </select>
           </label>
-          <label className="field">
-            <span>Калитка</span>
-            <select value={project.fence.gateSide} onChange={(e) => onChange({ ...project, fence: { ...project.fence, gateSide: e.target.value as MemorialProject['fence']['gateSide'] } })}>
-              <option value="front">Спереди</option><option value="left">Слева</option><option value="right">Справа</option>
-            </select>
-          </label>
+          {selectedFenceStyle.kind === 'metal' && (
+            <label className="field">
+              <span>Калитка</span>
+              <select value={project.fence.gateSide} onChange={(e) => onChange({ ...project, fence: { ...project.fence, gateSide: e.target.value as MemorialProject['fence']['gateSide'] } })}>
+                <option value="front">Спереди</option><option value="left">Слева</option><option value="right">Справа</option>
+              </select>
+            </label>
+          )}
+          {selectedFenceStyle.kind !== 'metal' && (
+            <p className="field-hint">Для гранитной ограды геометрия собирается по каталожным модулям; произвольная калитка к исходной модели не добавляется.</p>
+          )}
         </>}
         {project.bench.enabled && <>
           <label className="field">
