@@ -27,6 +27,7 @@ test('quote handoff contains configuration and source attribution but no portrai
   assert.equal(envelope.project.steles.length, 2)
   assert.equal(envelope.source.catalogProductId, null)
   assert.equal(envelope.source.sourceSku, 'KM-PAIR-001')
+  assert.equal(envelope.source.projectCatalogModelId, null)
   assert.deepEqual(envelope.privacy, {
     includesPortraitBinary: false,
     includesContactData: false,
