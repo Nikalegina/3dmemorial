@@ -82,15 +82,15 @@ export function validateQuoteRequestPayload(payload: QuoteRequestPayload): Quote
   validatePhone(payload.contact.phone)
   validateMessenger(payload.contact.messengerContact)
 
-  if (!payload.contact.phone && !payload.contact.messengerContact) {
-    throw new Error('At least one contact method is required')
-  }
   if (payload.contact.preferredChannel === 'PHONE' && !payload.contact.phone) {
     throw new Error('Phone is required for PHONE channel')
   }
   if ((payload.contact.preferredChannel === 'VK' || payload.contact.preferredChannel === 'MAX')
       && !payload.contact.messengerContact) {
     throw new Error('Messenger contact is required for messenger channel')
+  }
+  if (!payload.contact.phone && !payload.contact.messengerContact) {
+    throw new Error('At least one contact method is required')
   }
 
   if (payload.contact.name !== null && payload.contact.name.length > 100) throw new Error('Name is too long')
