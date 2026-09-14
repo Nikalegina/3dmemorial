@@ -18,7 +18,10 @@ import {
   getSourceComponentProduct,
   isSourceComponentProductId,
 } from '../domain/sourceComponentCatalog'
-import { createSourceComponentProject } from '../domain/sourceComponentProject'
+import {
+  createSourceComponentProject,
+  findSourceComponentProductId,
+} from '../domain/sourceComponentProject'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
   findStandardGlassSteleSize,
@@ -123,6 +126,7 @@ export function ConfiguratorPanel({
     ? getSourceStoneMaterial(activeStele.monument.sourceStoneCode)
     : null
   const selectedFenceStyle = FENCE_STYLES.find((item) => item.id === project.fence.styleId) ?? FENCE_STYLES[0]
+  const projectSourceComponentId = findSourceComponentProductId(project)
   const selectedSourceComponent = isSourceComponentProductId(sourceComponentProductId)
     ? getSourceComponentProduct(sourceComponentProductId)
     : null
@@ -142,6 +146,12 @@ export function ConfiguratorPanel({
     if (catalogProfileId !== sourceCatalogProfile.id) setCatalogProfileId(sourceCatalogProfile.id)
     if (catalogCategory !== sourceCatalogProfile.sourceCategory) setCatalogCategory(sourceCatalogProfile.sourceCategory)
   }, [catalogCategory, catalogProfileId, sourceCatalogProfile])
+
+  useEffect(() => {
+    if (projectSourceComponentId && projectSourceComponentId !== sourceComponentProductId) {
+      setSourceComponentProductId(projectSourceComponentId)
+    }
+  }, [projectSourceComponentId, sourceComponentProductId])
 
 
   const updateStele = (steleId: string, updater: (stele: MemorialStele) => MemorialStele) => {
