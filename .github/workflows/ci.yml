@@ -11,12 +11,13 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -24,6 +25,7 @@ jobs:
           else
             npm install --no-audit --no-fund
           fi
+
       - run: npm run test
       - run: npm run build
 
@@ -56,39 +58,73 @@ jobs:
             exit 1
           fi
 
-          FLAGS=(
-            --headless=new
-            --no-sandbox
-            --disable-dev-shm-usage
-            --enable-unsafe-swiftshader
-            --use-angle=swiftshader
-            --window-size=1440,1100
-            --virtual-time-budget=4000
-          )
+          browser_dump() {
+            local url="$1"
+            local output="$2"
+            local attempt
+            for attempt in 1 2 3; do
+              local profile
+              profile="$(mktemp -d)"
+              if timeout 40s "$CHROME"                 --headless=new                 --no-sandbox                 --disable-dev-shm-usage                 --disable-background-networking                 --disable-component-update                 --disable-sync                 --enable-unsafe-swiftshader                 --use-angle=swiftshader                 --window-size=1440,1100                 --virtual-time-budget=8000                 --user-data-dir="$profile"                 --dump-dom                 "$url" > "$output"; then
+                rm -rf "$profile"
+                if grep -q 'data-webgl-ready="true"' "$output"; then
+                  return 0
+                fi
+              else
+                rm -rf "$profile"
+              fi
+              echo "WebGL DOM attempt $attempt failed for $url" >&2
+              sleep 1
+            done
+            echo "WebGL readiness was not reached for $url" >&2
+            return 1
+          }
 
-          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "http://127.0.0.1:4173/"             > browser-artifacts/single-dom.html
+          browser_screenshot() {
+            local url="$1"
+            local output="$2"
+            local attempt
+            for attempt in 1 2 3; do
+              local profile
+              profile="$(mktemp -d)"
+              if timeout 40s "$CHROME"                 --headless=new                 --no-sandbox                 --disable-dev-shm-usage                 --disable-background-networking                 --disable-component-update                 --disable-sync                 --enable-unsafe-swiftshader                 --use-angle=swiftshader                 --window-size=1440,1100                 --virtual-time-budget=8000                 --user-data-dir="$profile"                 --screenshot="$output"                 "$url"; then
+                rm -rf "$profile"
+                if [ -s "$output" ]; then
+                  return 0
+                fi
+              else
+                rm -rf "$profile"
+              fi
+              echo "Screenshot attempt $attempt failed for $url" >&2
+              sleep 1
+            done
+            echo "Screenshot was not produced for $url" >&2
+            return 1
+          }
 
+          SINGLE_URL="http://127.0.0.1:4173/"
+          browser_dump "$SINGLE_URL" browser-artifacts/single-dom.html
           grep -q 'data-startup-source="default"' browser-artifacts/single-dom.html
-          grep -q 'data-webgl-ready="true"' browser-artifacts/single-dom.html
           grep -q 'data-visible-steles="1"' browser-artifacts/single-dom.html
           grep -q 'Оставить заявку для расчёта' browser-artifacts/single-dom.html
-
-          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/single.png             "http://127.0.0.1:4173/"
+          browser_screenshot "$SINGLE_URL" browser-artifacts/single.png
 
           PAIRED_URL="http://127.0.0.1:4173/?preset=paired-glass&sourceSku=KM-PAIR-001"
-
-          timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "$PAIRED_URL"             > browser-artifacts/paired-dom.html
-
+          browser_dump "$PAIRED_URL" browser-artifacts/paired-dom.html
           grep -q 'data-startup-source="catalog"' browser-artifacts/paired-dom.html
           grep -q 'data-preset-id="paired-glass"' browser-artifacts/paired-dom.html
           grep -q 'data-source-sku="KM-PAIR-001"' browser-artifacts/paired-dom.html
-          grep -q 'data-webgl-ready="true"' browser-artifacts/paired-dom.html
           grep -q 'data-visible-steles="2"' browser-artifacts/paired-dom.html
+          browser_screenshot "$PAIRED_URL" browser-artifacts/paired-glass.png
 
-          timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/paired-glass.png             "$PAIRED_URL"
-
-          test -s browser-artifacts/single.png
-          test -s browser-artifacts/paired-glass.png
+          FAMILY_URL="http://127.0.0.1:4173/?preset=family-classic&sourceSku=KM-FAMILY-001"
+          browser_dump "$FAMILY_URL" browser-artifacts/family-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/family-dom.html
+          grep -q 'data-preset-id="family-classic"' browser-artifacts/family-dom.html
+          grep -q 'data-source-sku="KM-FAMILY-001"' browser-artifacts/family-dom.html
+          grep -q 'data-visible-steles="3"' browser-artifacts/family-dom.html
+          grep -q 'Семейный' browser-artifacts/family-dom.html
+          browser_screenshot "$FAMILY_URL" browser-artifacts/family-classic.png
 
       - name: Upload browser smoke artifacts
         if: always()

@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
+  addFamilyStele,
   createDefaultProject,
+  FAMILY_UI_MAX_STELES,
   getCompositionWidth,
   getSteleLayoutPositions,
   getVisibleSteles,
+  removeFamilyStele,
   withLayout,
 } from '../src/domain/memorialProject.ts'
 
@@ -49,4 +52,46 @@ test('switching back to single preserves the secondary stele for reversible edit
 
   project = withLayout(project, 'paired')
   assert.equal(getVisibleSteles(project)[1].inscription.name, 'НЕ ТЕРЯТЬ')
+})
+
+
+test('family layout guarantees three visible steles without changing schema version', () => {
+  const project = withLayout(createDefaultProject(), 'family')
+  assert.equal(project.schemaVersion, 4)
+  assert.equal(project.layout.type, 'family')
+  assert.equal(getVisibleSteles(project).length, 3)
+  assert.equal(new Set(project.steles.map((stele) => stele.id)).size, project.steles.length)
+})
+
+test('family editor can add a fourth stele and will not exceed the UI limit', () => {
+  let project = withLayout(createDefaultProject(), 'family')
+  project = addFamilyStele(project)
+  assert.equal(getVisibleSteles(project).length, FAMILY_UI_MAX_STELES)
+
+  const again = addFamilyStele(project)
+  assert.equal(getVisibleSteles(again).length, FAMILY_UI_MAX_STELES)
+})
+
+test('family editor removes selected extra stele but preserves minimum family size', () => {
+  let project = addFamilyStele(withLayout(createDefaultProject(), 'family'))
+  const removedId = project.steles[1].id
+  project = removeFamilyStele(project, removedId)
+
+  assert.equal(getVisibleSteles(project).length, 3)
+  assert.equal(project.steles.some((stele) => stele.id === removedId), false)
+
+  const protectedProject = removeFamilyStele(project, project.steles[0].id)
+  assert.equal(getVisibleSteles(protectedProject).length, 3)
+  assert.deepEqual(protectedProject, project)
+})
+
+test('family to single and back preserves hidden family subjects', () => {
+  let project = withLayout(createDefaultProject(), 'family')
+  project.steles[2].inscription.name = 'ТРЕТИЙ НЕ ТЕРЯТЬ'
+  project = withLayout(project, 'single')
+  assert.equal(getVisibleSteles(project).length, 1)
+  assert.ok(project.steles.length >= 3)
+
+  project = withLayout(project, 'family')
+  assert.equal(getVisibleSteles(project)[2].inscription.name, 'ТРЕТИЙ НЕ ТЕРЯТЬ')
 })

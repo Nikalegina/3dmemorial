@@ -145,6 +145,7 @@ interface LegacyProjectV3 {
 
 export const PROJECT_SCHEMA_VERSION = 4 as const
 export const MAX_SUPPORTED_STELES = 6
+export const FAMILY_UI_MAX_STELES = 4
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
@@ -180,6 +181,13 @@ export function createDefaultStele(id = 'primary'): MemorialStele {
       epitaph: '',
     },
   }
+}
+
+function createFamilyCompanionStele(id: string, index: number): MemorialStele {
+  const stele = createDefaultStele(id)
+  stele.monument.widthM = index % 2 === 0 ? 0.52 : 0.56
+  stele.monument.heightM = index % 2 === 0 ? 1.12 : 1.18
+  return stele
 }
 
 function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele {
@@ -262,6 +270,11 @@ export function normalizeProject(input: MemorialProject): MemorialProject {
   if (input.layout.type === 'paired' && steles.length < 2) {
     steles.push(createDefaultStele('secondary'))
   }
+  if (input.layout.type === 'family' && steles.length < 3) {
+    while (steles.length < 3) {
+      steles.push(createFamilyCompanionStele(`family-${steles.length + 1}`, steles.length))
+    }
+  }
 
   steles = uniqueSteleIds(steles)
 
@@ -316,7 +329,36 @@ export function withLayout(project: MemorialProject, type: LayoutType): Memorial
     secondary.monument.heightM = 1.18
     next.steles.push(secondary)
   }
+  if (type === 'family' && next.steles.length < 3) {
+    while (next.steles.length < 3) {
+      next.steles.push(createFamilyCompanionStele(`family-${next.steles.length + 1}`, next.steles.length))
+    }
+  }
   return normalizeProject(next)
+}
+
+export function addFamilyStele(project: MemorialProject): MemorialProject {
+  if (project.steles.length >= FAMILY_UI_MAX_STELES) return normalizeProject({ ...project, layout: { ...project.layout, type: 'family' } })
+
+  const nextIndex = project.steles.length
+  const stele = createFamilyCompanionStele(`family-${nextIndex + 1}`, nextIndex)
+  return normalizeProject({
+    ...project,
+    layout: { ...project.layout, type: 'family' },
+    steles: [...project.steles, stele],
+  })
+}
+
+export function removeFamilyStele(project: MemorialProject, steleId: string): MemorialProject {
+  if (project.layout.type !== 'family' || project.steles.length <= 3) return project
+
+  const steles = project.steles.filter((stele) => stele.id !== steleId)
+  if (steles.length === project.steles.length) return project
+
+  return normalizeProject({
+    ...project,
+    steles,
+  })
 }
 
 export function migrateProjectV3(input: LegacyProjectV3): MemorialProject {
