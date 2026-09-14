@@ -37,6 +37,7 @@ import {
   type SurfaceMaterialId,
 } from '../domain/memorialProject'
 import { PROJECT_PRESETS } from '../domain/presets'
+import { getSourceStoneMaterial, resolveSourceStoneCodes, type SourceStoneCode } from '../domain/sourceStoneMaterials'
 import type { RenderFormat } from '../export/projectExports'
 import type { CameraPreset } from '../scene/CameraControls'
 
@@ -96,6 +97,15 @@ export function ConfiguratorPanel({
   const sourceCatalogVariantIndex = sourceCatalogProfile
     ? findSourceCatalogVariantIndex(sourceCatalogProfile, activeStele.monument)
     : -1
+  const sourceCatalogVariant = sourceCatalogProfile && sourceCatalogVariantIndex >= 0
+    ? sourceCatalogProfile.variants[sourceCatalogVariantIndex]
+    : null
+  const sourceStoneCodes = sourceCatalogVariant
+    ? resolveSourceStoneCodes(sourceCatalogVariant.materialCodes)
+    : []
+  const selectedSourceStone = activeStele.monument.sourceStoneCode
+    ? getSourceStoneMaterial(activeStele.monument.sourceStoneCode)
+    : null
 
   useEffect(() => {
     if (activeSteleIndex !== safeIndex) setActiveSteleIndex(safeIndex)
@@ -213,10 +223,28 @@ export function ConfiguratorPanel({
     if (!sourceCatalogProfile || index < 0) return
     const variant = sourceCatalogProfile.variants[index]
     if (!variant) return
+
+    const allowedStoneCodes = resolveSourceStoneCodes(variant.materialCodes)
+    const currentStoneCode = activeStele.monument.sourceStoneCode
+    const sourceStoneCode = currentStoneCode && allowedStoneCodes.includes(currentStoneCode)
+      ? currentStoneCode
+      : allowedStoneCodes[0]
+    const sourceStone = sourceStoneCode ? getSourceStoneMaterial(sourceStoneCode) : null
+
     patchMonument({
       widthM: variant.widthMm / 1000,
       heightM: variant.heightMm / 1000,
       depthM: variant.depthMm / 1000,
+      sourceStoneCode,
+      surfaceId: sourceStone?.renderSurfaceId ?? 'gabbro-polished',
+    })
+  }
+
+  const applySourceStone = (code: SourceStoneCode) => {
+    const sourceStone = getSourceStoneMaterial(code)
+    patchMonument({
+      sourceStoneCode: code,
+      surfaceId: sourceStone.renderSurfaceId,
     })
   }
 
@@ -401,6 +429,33 @@ export function ConfiguratorPanel({
                 ? (sourceCatalogProfile.variants[sourceCatalogVariantIndex]?.materialCodes.join(', ') || 'не указаны')
                 : 'размер изменён вручную'}.
             </p>
+
+            {sourceCatalogVariantIndex >= 0 && sourceStoneCodes.length > 0 && activeStele.monument.material !== 'glass' && (
+              <>
+                <label className="field">
+                  <span>Порода камня по каталогу</span>
+                  <select
+                    value={activeStele.monument.sourceStoneCode ?? sourceStoneCodes[0]}
+                    data-source-stone-code={activeStele.monument.sourceStoneCode ?? sourceStoneCodes[0]}
+                    onChange={(e) => applySourceStone(e.target.value as SourceStoneCode)}
+                  >
+                    {sourceStoneCodes.map((code) => {
+                      const stone = getSourceStoneMaterial(code)
+                      return <option key={code} value={code}>{code} · {stone.name}</option>
+                    })}
+                  </select>
+                </label>
+                {selectedSourceStone && (
+                  <p className="field-hint" data-source-stone-authority={selectedSourceStone.sourceAuthority}>
+                    {selectedSourceStone.description}
+                    {selectedSourceStone.sourceAuthority === 'documented'
+                      ? ` Плотность: ${selectedSourceStone.density}; прочность: ${selectedSourceStone.compressiveStrength}; водопоглощение: ${selectedSourceStone.waterAbsorption}; морозостойкость: ${selectedSourceStone.frostResistance}.`
+                      : ' Физико-механические характеристики этого кода в материальном разделе исходного PDF не приведены.'}
+                    {' '}3D-фактура является визуальной аппроксимацией, а не спектрофотометрически точной копией породы.
+                  </p>
+                )}
+              </>
+            )}
           </>
         )}
         <label className="field">
@@ -413,7 +468,13 @@ export function ConfiguratorPanel({
         </label>
         <label className="field">
           <span>Поверхность</span>
-          <select value={activeStele.monument.surfaceId} onChange={(e) => patchMonument({ surfaceId: e.target.value as SurfaceMaterialId })}>
+          <select
+            value={activeStele.monument.surfaceId}
+            onChange={(e) => patchMonument({
+              surfaceId: e.target.value as SurfaceMaterialId,
+              sourceStoneCode: undefined,
+            })}
+          >
             {compatibleMaterials.map((material) => <option value={material.id} key={material.id}>{material.name}</option>)}
           </select>
         </label>
