@@ -7,7 +7,10 @@ import {
   getSourceComponentProduct,
   isSourceComponentProductId,
 } from '../src/domain/sourceComponentCatalog.ts'
-import { createSourceComponentProject } from '../src/domain/sourceComponentProject.ts'
+import {
+  createSourceComponentProject,
+  findSourceComponentProductId,
+} from '../src/domain/sourceComponentProject.ts'
 
 test('source component registry contains the complete pages 27-30 bounded set', () => {
   assert.equal(SOURCE_COMPONENT_PRODUCT_COUNT, 21)
@@ -105,4 +108,16 @@ test('source component project recipes reuse existing managed component slots', 
   const f03 = createSourceComponentProject('ermis-fence-f03')
   assert.equal(f03.fence.enabled, true)
   assert.equal(f03.fence.styleId, 'ermis-fence-f03')
+})
+
+
+test('active source component can be recovered from the managed project state', () => {
+  const tsk = createSourceComponentProject('ermis-tsk50')
+  assert.equal(findSourceComponentProductId(tsk), 'ermis-tsk50')
+
+  const f03 = createSourceComponentProject('ermis-fence-f03')
+  assert.equal(findSourceComponentProductId(f03), 'ermis-fence-f03')
+
+  const paving = createSourceComponentProject('ermis-paving-600x300')
+  assert.equal(findSourceComponentProductId(paving), 'ermis-paving-600x300')
 })
