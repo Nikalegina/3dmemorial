@@ -18,28 +18,34 @@ function useInscriptionTexture(stele: MemorialStele) {
 
     const canvas = document.createElement('canvas')
     canvas.width = 1536
-    canvas.height = 768
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = material === 'glass' ? '#171717' : '#f1f1ed'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
+    canvas.height = 820
+    const context = canvas.getContext('2d')
+    if (!context) return
 
-    ctx.font = '600 88px Georgia, serif'
-    ctx.fillText(inscription.name || ' ', canvas.width / 2, 230, 1360)
-    ctx.font = '500 64px Georgia, serif'
-    ctx.fillText(inscription.dates || ' ', canvas.width / 2, 370, 1250)
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    const isGlass = material === 'glass'
+    context.fillStyle = isGlass ? '#151a1b' : '#f3f2ed'
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+    context.shadowColor = isGlass ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.45)'
+    context.shadowBlur = 5
+
+    context.font = '700 108px Georgia, serif'
+    context.fillText(inscription.name || ' ', canvas.width / 2, 230, 1380)
+
+    context.shadowBlur = 3
+    context.font = '600 72px Georgia, serif'
+    context.fillText(inscription.dates || ' ', canvas.width / 2, 405, 1260)
 
     if (inscription.epitaph.trim()) {
-      ctx.font = 'italic 42px Georgia, serif'
-      ctx.globalAlpha = 0.9
-      ctx.fillText(inscription.epitaph, canvas.width / 2, 535, 1320)
+      context.font = 'italic 48px Georgia, serif'
+      context.globalAlpha = 0.92
+      context.fillText(inscription.epitaph, canvas.width / 2, 605, 1320)
     }
 
     const next = new THREE.CanvasTexture(canvas)
     next.colorSpace = THREE.SRGBColorSpace
-    next.anisotropy = 4
+    next.anisotropy = 8
     next.needsUpdate = true
     setTexture((current) => {
       current?.dispose()
@@ -57,8 +63,8 @@ export function InscriptionPlane({ stele, z }: { stele: MemorialStele; z: number
   const { widthM, heightM } = stele.monument
 
   return (
-    <mesh position={[0, heightM * 0.23, z]}>
-      <planeGeometry args={[widthM * 0.78, heightM * 0.3]} />
+    <mesh position={[0, heightM * 0.245, z]} renderOrder={5}>
+      <planeGeometry args={[widthM * 0.86, heightM * 0.34]} />
       <meshBasicMaterial map={texture} transparent toneMapped={false} depthWrite={false} />
     </mesh>
   )
