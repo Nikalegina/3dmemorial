@@ -38,7 +38,15 @@ function enabled(value: boolean): string {
 
 function shapeName(shapeId: MemorialProject['steles'][number]['monument']['shape']): string {
   if (isSourceCatalogProfileId(shapeId)) {
-    return `Каталог № ${getSourceCatalogProfile(shapeId).sourceModel}`
+    const profile = getSourceCatalogProfile(shapeId)
+    const prefix = profile.sourceCategory === 'family'
+      ? 'Семейный каталог'
+      : profile.sourceCategory === 'elite'
+        ? 'Элитный каталог'
+        : profile.sourceCategory === 'combined'
+          ? 'Комбинированный каталог'
+          : 'Каталог'
+    return `${prefix} № ${profile.sourceModel}`
   }
   return catalogName(MONUMENT_SHAPES, shapeId)
 }
