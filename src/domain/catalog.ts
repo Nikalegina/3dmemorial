@@ -1,4 +1,4 @@
-import type { MonumentShape, PortraitMode, SurfaceMaterialId } from './memorialProject'
+import type { MonumentShape, PortraitFrame, PortraitMode, SurfaceMaterialId } from './memorialProject'
 
 export interface MonumentShapeDefinition {
   id: MonumentShape
@@ -24,6 +24,12 @@ export interface MaterialDefinition {
 
 export interface PortraitModeDefinition {
   id: PortraitMode
+  name: string
+  description: string
+}
+
+export interface PortraitFrameDefinition {
+  id: PortraitFrame
   name: string
   description: string
 }
@@ -63,6 +69,12 @@ export const PORTRAIT_MODES: readonly PortraitModeDefinition[] = [
   { id: 'color', name: 'Цветная печать', description: 'Основной режим для стеклянных памятников и фотопечати.' },
   { id: 'bw', name: 'Ч/Б визуализация', description: 'Нейтральное чёрно-белое представление портрета.' },
   { id: 'engraving', name: 'Имитация гравировки', description: 'Предварительная визуализация лазерной гравировки; не производственный файл.' },
+] as const
+
+export const PORTRAIT_FRAMES: readonly PortraitFrameDefinition[] = [
+  { id: 'oval', name: 'Овал', description: 'Классическое овальное оформление портрета.' },
+  { id: 'rectangle', name: 'Прямоугольник', description: 'Прямоугольная фотопечать с мягким краем.' },
+  { id: 'full', name: 'Крупная фотопечать', description: 'Увеличенная зона цветного изображения, особенно для стеклянных стел.' },
 ] as const
 
 export function getShapeDefinition(id: MonumentShape): MonumentShapeDefinition {

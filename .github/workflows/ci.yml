@@ -117,6 +117,15 @@ jobs:
           grep -q 'data-visible-steles="2"' browser-artifacts/paired-dom.html
           browser_screenshot "$PAIRED_URL" browser-artifacts/paired-glass.png
 
+          MODERN_GLASS_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-GLASS-001"
+          browser_dump "$MODERN_GLASS_URL" browser-artifacts/modern-glass-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/modern-glass-dom.html
+          grep -q 'data-preset-id="modern-glass"' browser-artifacts/modern-glass-dom.html
+          grep -q 'data-source-sku="KM-GLASS-001"' browser-artifacts/modern-glass-dom.html
+          grep -q 'data-visible-steles="1"' browser-artifacts/modern-glass-dom.html
+          grep -q 'Крупная фотопечать' browser-artifacts/modern-glass-dom.html
+          browser_screenshot "$MODERN_GLASS_URL" browser-artifacts/modern-glass.png
+
           FAMILY_URL="http://127.0.0.1:4173/?preset=family-classic&sourceSku=KM-FAMILY-001"
           browser_dump "$FAMILY_URL" browser-artifacts/family-dom.html
           grep -q 'data-startup-source="catalog"' browser-artifacts/family-dom.html

@@ -62,6 +62,8 @@ export const PROJECT_PRESETS: readonly ProjectPreset[] = [
       stele.monument.material = 'glass'
       stele.monument.surfaceId = 'glass-clear'
       stele.portrait.mode = 'color'
+      stele.portrait.frame = 'full'
+      stele.portrait.size = 1.12
       project.flowerBed.enabled = false
       return withId(project, 'modern-glass')
     },
@@ -96,6 +98,8 @@ export const PROJECT_PRESETS: readonly ProjectPreset[] = [
         stele.monument.material = 'glass'
         stele.monument.surfaceId = 'glass-clear'
         stele.portrait.mode = 'color'
+        stele.portrait.frame = 'rectangle'
+        stele.portrait.size = 1
       }
       return withId(project, 'paired-glass')
     },

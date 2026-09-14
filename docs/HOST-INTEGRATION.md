@@ -29,7 +29,7 @@ Example envelope:
   channel: 'MEMORIAL3D',
   type: 'REQUEST_QUOTE',
   version: 1,
-  projectSchemaVersion: 4,
+  projectSchemaVersion: 5,
   project: { /* normalized MemorialProject */ },
   projectUrl: 'https://.../constructor?project=...',
   source: {
