@@ -101,6 +101,13 @@ export function ConfiguratorPanel({
     if (activeSteleIndex !== safeIndex) setActiveSteleIndex(safeIndex)
   }, [activeSteleIndex, safeIndex])
 
+  useEffect(() => {
+    if (sourceCatalogProfile && catalogProfileId !== sourceCatalogProfile.id) {
+      setCatalogProfileId(sourceCatalogProfile.id)
+    }
+  }, [catalogProfileId, sourceCatalogProfile])
+
+
   const updateStele = (steleId: string, updater: (stele: MemorialStele) => MemorialStele) => {
     onChange(normalizeProject({
       ...project,
@@ -284,7 +291,11 @@ export function ConfiguratorPanel({
 
         <label className="field">
           <span>Фигурная модель из исходного каталога</span>
-          <select value={catalogProfileId} onChange={(e) => setCatalogProfileId(e.target.value)}>
+          <select
+            value={catalogProfileId}
+            data-selected-catalog-profile={catalogProfileId}
+            onChange={(e) => setCatalogProfileId(e.target.value)}
+          >
             {SOURCE_CATALOG_PROFILES.map((profile) => (
               <option key={profile.id} value={profile.id}>
                 № {profile.sourceModel} · {profile.variants.length} {profile.variants.length === 1 ? 'размер' : 'размера/варианта'}
