@@ -145,20 +145,20 @@ function OrthodoxPortal({ stele }: { stele: MemorialStele }) {
   const { widthM: width, heightM: height, depthM: depth } = stele.monument
   const baseHeight = height * 0.07
   const columnBottom = baseHeight * 1.1
-  const headerBottom = height * 0.72
+  const headerBottom = height * 0.67
   const shaftHeight = headerBottom - columnBottom
   const columnX = width * 0.34
   const shaftRadius = width * 0.035
-  const headerHeight = height * 0.105
+  const headerHeight = height * 0.11
   const headerDepth = depth * 0.82
   const header = useMemo(
     () => createEliteHeaderGeometry(width * 0.8, headerHeight, headerDepth, 'orthodox'),
     [headerDepth, headerHeight, width],
   )
 
-  const finialY = headerBottom + headerHeight + height * 0.035
-  const crossBaseY = finialY + height * 0.055
-  const crossHeight = height * 0.12
+  const finialY = height * 0.82
+  const crossBaseY = height * 0.84
+  const crossHeight = height * 0.15
   const crossDepth = Math.min(depth * 0.45, width * 0.045)
 
   return (
