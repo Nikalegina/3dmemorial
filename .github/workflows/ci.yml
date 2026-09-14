@@ -206,7 +206,7 @@ jobs:
           grep -q 'data-selected-catalog-profile="ermis-elite-19"' browser-artifacts/elite-19-dom.html
           grep -q 'data-catalog-category="elite"' browser-artifacts/elite-19-dom.html
           grep -q 'data-source-stone-code="K06"' browser-artifacts/elite-19-dom.html
-          grep -q 'Элитный каталог № 19' browser-artifacts/elite-19-dom.html
+          grep -q 'Исходная модель № 19' browser-artifacts/elite-19-dom.html
           grep -q '1500 × 700 × 150 мм' browser-artifacts/elite-19-dom.html
           grep -q 'скульптурные модели не подменяются плоской формой' browser-artifacts/elite-19-dom.html
           browser_screenshot "$ELITE_19_URL" browser-artifacts/catalog-elite-19.png
