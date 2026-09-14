@@ -255,7 +255,36 @@ export function updateSourceCatalogVariant(
 ): MemorialProject {
   const modelId = project.catalogSource?.modelId
   if (!modelId) return project
-  return createProjectFromSourceCatalogModel(modelId, variantIndex, requestedStoneCode)
+  const model = getSourceCatalogModel(modelId)
+  const variant = model.variants[variantIndex]
+  if (!variant) return project
+
+  const candidate = requestedStoneCode?.trim().toUpperCase()
+  const stoneCode = candidate && variant.stoneCodes.includes(candidate)
+    ? candidate
+    : (variant.stoneCodes[0] ?? null)
+  const stone = getSourceStone(stoneCode)
+
+  return normalizeProject({
+    ...project,
+    catalogSource: {
+      ...project.catalogSource,
+      variantIndex,
+    },
+    steles: project.steles.map((stele, index) => index === 0
+      ? {
+          ...stele,
+          monument: {
+            ...stele.monument,
+            heightM: variant.heightMm / 1000,
+            widthM: variant.widthMm / 1000,
+            depthM: variant.depthMm / 1000,
+            stoneCode,
+            surfaceId: stone?.renderSurfaceId ?? stele.monument.surfaceId,
+          },
+        }
+      : stele),
+  })
 }
 
 export const SOURCE_CATALOG_COUNTS = {
