@@ -83,6 +83,7 @@ test('source project factory keeps exact catalog dimensions and variant matching
   assert.equal(monument.heightM, 0.8)
   assert.equal(monument.widthM, 0.4)
   assert.equal(monument.depthM, 0.05)
+  assert.equal(monument.sourceStoneCode, 'K06')
   assert.equal(findSourceCatalogVariantIndex(profile, monument), 2)
 })
 
