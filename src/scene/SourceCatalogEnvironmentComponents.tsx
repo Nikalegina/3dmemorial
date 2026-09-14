@@ -9,6 +9,7 @@ import {
   VASE_STYLES,
 } from '../domain/componentCatalog'
 import type { MemorialProject } from '../domain/memorialProject'
+import { SourceLampada } from './SourceLampada'
 
 function PolishedBlackStone() {
   return (
@@ -249,41 +250,14 @@ function SourceVase({ project, side }: { project: MemorialProject; side: 'left' 
   }
 
   if (style.kind === 'lampada') {
-    const bodyRadius = radius * 0.82
-    const baseH = h * 0.16
-    const capVisualHeight = h * 0.16
-    const crossHeight = h * 0.1
-    const pillarH = h - baseH - capVisualHeight - crossHeight
-    const capCenterY = baseH + pillarH + capVisualHeight / 2
-    const capScaleY = capVisualHeight / (radius * 2)
-    const crossBaseY = h - crossHeight
     return (
-      <group position={[x, 0.13, z]} data-source-component={style.sourceComponentId}>
-        <StoneCylinder radius={radius} height={baseH} position={[0, baseH / 2, 0]} />
-        {[-1, 1].flatMap((sx) => [-1, 1].map((sz) => (
-          <StoneBox
-            key={`lampada-${sx}-${sz}`}
-            size={[radius * 0.22, pillarH, radius * 0.22]}
-            position={[sx * bodyRadius * 0.58, baseH + pillarH / 2, sz * bodyRadius * 0.58]}
-          />
-        )))}
-        <mesh position={[0, baseH + pillarH * 0.5, 0]}>
-          <cylinderGeometry args={[bodyRadius * 0.28, bodyRadius * 0.28, pillarH * 0.58, 24]} />
-          <meshStandardMaterial color="#b97838" emissive="#8b3f13" emissiveIntensity={0.7} />
-        </mesh>
-        <mesh position={[0, capCenterY, 0]} scale={[1, capScaleY, 1]} castShadow receiveShadow>
-          <sphereGeometry args={[radius, 32, 20]} />
-          <PolishedBlackStone />
-        </mesh>
-        <StoneBox
-          size={[radius * 0.1, crossHeight, radius * 0.1]}
-          position={[0, crossBaseY + crossHeight / 2, 0]}
-        />
-        <StoneBox
-          size={[radius * 0.48, radius * 0.09, radius * 0.1]}
-          position={[0, crossBaseY + crossHeight * 0.68, 0]}
-        />
-      </group>
+      <SourceLampada
+        position={[x, 0.13, z]}
+        widthM={diameter}
+        heightM={h}
+        depthM={diameter}
+        sourceComponentId={style.sourceComponentId}
+      />
     )
   }
 
