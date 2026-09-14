@@ -9,6 +9,7 @@ import {
   SOURCE_CATALOG_MODELS,
 } from '../src/domain/sourceCatalog.ts'
 import { SOURCE_CATALOG_PROFILE_COUNT, getSourceCatalogProfile } from '../src/domain/sourceCatalogProfiles.ts'
+import { parseProject, serializeProject } from '../src/domain/memorialProject.ts'
 
 test('canonical source catalog contains exactly 150 source models', () => {
   assert.deepEqual(SOURCE_CATALOG_COUNTS, {
@@ -31,6 +32,17 @@ test('every catalog-profile model resolves source-derived polygon data', () => {
     assert.ok(profile.length >= 24)
     assert.ok(profile.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y)))
   }
+})
+
+test('decoded source profiles normalize to exact physical bounding dimensions', () => {
+  const profile = getSourceCatalogProfile('ermis-single-20')
+  assert.ok(profile)
+  const xs = profile.map((point) => point.x)
+  const ys = profile.map((point) => point.y)
+  assert.ok(Math.abs(Math.min(...xs) + 0.5) < 1e-9)
+  assert.ok(Math.abs(Math.max(...xs) - 0.5) < 1e-9)
+  assert.ok(Math.abs(Math.min(...ys)) < 1e-9)
+  assert.ok(Math.abs(Math.max(...ys) - 1) < 1e-9)
 })
 
 test('model 20 preserves source dimensions in HEIGHT × WIDTH × DEPTH order', () => {
@@ -90,4 +102,15 @@ test('source model lookup is canonical and stone metadata remains fail-closed', 
   assert.equal(getSourceStone('К06')?.name, 'BLACK GABBRO')
   assert.equal(getSourceStone('К08')?.sourceStatus, 'unresolved')
   assert.equal(getSourceStone('G654')?.densityGcm3, null)
+})
+
+test('source catalog provenance survives project serialization without schema bump', () => {
+  const source = createProjectFromSourceCatalogModel('ERMIS-SINGLE-20', 1, 'К06')
+  const parsed = parseProject(serializeProject(source))
+  assert.equal(parsed.schemaVersion, 6)
+  assert.deepEqual(parsed.catalogSource, source.catalogSource)
+  assert.equal(parsed.steles[0].monument.profileId, 'ermis-single-20')
+  assert.equal(parsed.steles[0].monument.stoneCode, 'К06')
+  assert.equal(parsed.steles[0].monument.heightM, source.steles[0].monument.heightM)
+  assert.equal(parsed.steles[0].monument.widthM, source.steles[0].monument.widthM)
 })
