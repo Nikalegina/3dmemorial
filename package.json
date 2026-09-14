@@ -11,10 +11,12 @@
     "preview": "vite preview",
     "build": "tsc -b && vite build",
     "check": "tsc -b",
-    "test": "npm run test:domain && npm run validate:assets && npm run check:tests",
-    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/share.node.test.ts tests/projectSpec.node.test.ts tests/geometry.node.test.ts tests/multiStele.node.test.ts tests/catalogEntry.node.test.ts tests/projectHistory.node.test.ts tests/inscriptionCatalog.node.test.ts",
+    "test": "npm run test:domain && npm run validate:assets && npm run validate:production-assets && npm run check:asset-index && npm run check:tests",
+    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/share.node.test.ts tests/projectSpec.node.test.ts tests/geometry.node.test.ts tests/multiStele.node.test.ts tests/catalogEntry.node.test.ts tests/projectHistory.node.test.ts tests/inscriptionCatalog.node.test.ts tests/productionAssets.node.test.mjs",
     "validate:assets": "node scripts/validate-asset-registry.mjs",
-    "check:tests": "tsc -p tsconfig.tests.json --noEmit"
+    "check:tests": "tsc -p tsconfig.tests.json --noEmit",
+    "validate:production-assets": "node scripts/validate-production-assets.mjs",
+    "check:asset-index": "node scripts/check-production-asset-index.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.7.0",

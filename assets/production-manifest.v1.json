@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "runtimeBasePath": "/assets/runtime/",
+  "budgets": {
+    "MODEL_GLB": 12582912,
+    "TEXTURE_WEBP": 4194304,
+    "FONT_WOFF2": 768000
+  },
+  "assets": []
+}
