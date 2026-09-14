@@ -69,7 +69,7 @@ jobs:
           timeout 30s "$CHROME" "${FLAGS[@]}"             --dump-dom             "http://127.0.0.1:4173/"             > browser-artifacts/single-dom.html
 
           grep -q 'data-startup-source="default"' browser-artifacts/single-dom.html
-          grep -q 'data-renderer-ready="true"' browser-artifacts/single-dom.html
+          grep -q 'data-webgl-ready="true"' browser-artifacts/single-dom.html
           grep -q 'data-visible-steles="1"' browser-artifacts/single-dom.html
 
           timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/single.png             "http://127.0.0.1:4173/"
@@ -81,7 +81,7 @@ jobs:
           grep -q 'data-startup-source="catalog"' browser-artifacts/paired-dom.html
           grep -q 'data-preset-id="paired-glass"' browser-artifacts/paired-dom.html
           grep -q 'data-source-sku="KM-PAIR-001"' browser-artifacts/paired-dom.html
-          grep -q 'data-renderer-ready="true"' browser-artifacts/paired-dom.html
+          grep -q 'data-webgl-ready="true"' browser-artifacts/paired-dom.html
           grep -q 'data-visible-steles="2"' browser-artifacts/paired-dom.html
 
           timeout 30s "$CHROME" "${FLAGS[@]}"             --screenshot=browser-artifacts/paired-glass.png             "$PAIRED_URL"

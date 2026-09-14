@@ -32,6 +32,7 @@ export function MemorialCanvas({
         gl.setClearColor('#d7d4cc')
         gl.toneMapping = ACESFilmicToneMapping
         gl.toneMappingExposure = 1.08
+        gl.domElement.dataset.webglReady = 'true'
         onCanvasReady(gl.domElement)
       }}
     >

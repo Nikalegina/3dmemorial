@@ -174,7 +174,6 @@ export function App() {
       data-startup-source={startup.source}
       data-preset-id={startup.context.presetId ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
-      data-renderer-ready={renderCanvas ? "true" : "false"}
       data-visible-steles={getVisibleSteles(normalized).length}
     >
       <div className="viewport">
