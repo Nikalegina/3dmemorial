@@ -7,6 +7,15 @@ import {
   serializeProject,
   type MemorialProject,
 } from '../domain/memorialProject'
+import {
+  canRedoProject,
+  canUndoProject,
+  commitProject,
+  createProjectHistory,
+  redoProject,
+  resetProjectHistory,
+  undoProject,
+} from '../domain/projectHistory'
 import { loadLocalProject, saveLocalProject } from '../domain/projectStorage'
 import { createShareUrl } from '../domain/shareProject'
 import { buildProjectPdf, canvasToBlob, type RenderFormat } from '../export/projectExports'
@@ -22,9 +31,15 @@ function nextFrame(): Promise<void> {
   return new Promise((resolve) => requestAnimationFrame(() => resolve()))
 }
 
+function isEditingText(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement
+    && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
+}
+
 export function App() {
   const [startup] = useState(() => resolveStartupProject(window.location.href, loadLocalProject()))
-  const [project, setProject] = useState<MemorialProject>(startup.project)
+  const [history, setHistory] = useState(() => createProjectHistory(startup.project))
+  const project = history.present
   const [portraitUrls, setPortraitUrls] = useState<Record<string, string>>({})
   const [portraitErrors, setPortraitErrors] = useState<Record<string, string | null>>({})
   const portraitUrlsRef = useRef<Record<string, string>>({})
@@ -36,12 +51,46 @@ export function App() {
   const [highQualityRender, setHighQualityRender] = useState(false)
   const normalized = useMemo(() => normalizeProject(project), [project])
 
+  const applyProject = (next: MemorialProject) => {
+    setHistory((current) => commitProject(current, next))
+  }
+
+  const undo = () => setHistory((current) => undoProject(current))
+  const redo = () => setHistory((current) => redoProject(current))
+
   useEffect(() => {
     portraitUrlsRef.current = portraitUrls
   }, [portraitUrls])
 
   useEffect(() => () => {
     for (const url of Object.values(portraitUrlsRef.current)) URL.revokeObjectURL(url)
+  }, [])
+
+  useEffect(() => {
+    if (history.revision === 0) return
+    const timeoutId = window.setTimeout(() => saveLocalProject(normalized), 700)
+    return () => window.clearTimeout(timeoutId)
+  }, [history.revision, normalized])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || isEditingText(event.target)) return
+      const key = event.key.toLowerCase()
+
+      if (key === 'z' && event.shiftKey) {
+        event.preventDefault()
+        setHistory((current) => redoProject(current))
+      } else if (key === 'z') {
+        event.preventDefault()
+        setHistory((current) => undoProject(current))
+      } else if (key === 'y') {
+        event.preventDefault()
+        setHistory((current) => redoProject(current))
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
   const clearPortraits = () => {
@@ -144,7 +193,7 @@ export function App() {
 
     try {
       const parsed = parseProject(await file.text())
-      setProject(parsed)
+      setHistory((current) => resetProjectHistory(current, parsed))
       clearPortraits()
       setCameraPreset('perspective')
       setShareStatus(null)
@@ -173,6 +222,7 @@ export function App() {
       data-startup-source={startup.source}
       data-preset-id={startup.context.presetId ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
+      data-history-revision={history.revision}
     >
       <div className="viewport">
         <MemorialCanvas
@@ -185,14 +235,18 @@ export function App() {
       </div>
       <ConfiguratorPanel
         project={normalized}
-        onChange={setProject}
+        onChange={applyProject}
         onPortraitFile={onPortraitFile}
         portraitErrors={portraitErrors}
         cameraPreset={cameraPreset}
         onCameraPreset={setCameraPreset}
+        canUndo={canUndoProject(history)}
+        canRedo={canRedoProject(history)}
+        onUndo={undo}
+        onRedo={redo}
         onSave={() => saveLocalProject(normalized)}
         onReset={() => {
-          setProject(createDefaultProject())
+          setHistory((current) => resetProjectHistory(current, createDefaultProject()))
           clearPortraits()
           setCameraPreset('perspective')
           setExportStatus(null)
