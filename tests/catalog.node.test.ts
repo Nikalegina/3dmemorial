@@ -38,7 +38,7 @@ test('normalization preserves compatible colored granite and rejects glass on st
 test('presets create valid current-schema projects including paired variants', () => {
   for (const preset of PROJECT_PRESETS) {
     const project = preset.create()
-    assert.equal(project.schemaVersion, 4)
+    assert.equal(project.schemaVersion, 5)
   }
   assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'paired-classic' && preset.create().steles.length >= 2))
 })
