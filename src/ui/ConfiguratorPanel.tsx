@@ -30,6 +30,13 @@ import {
   type SurfaceMaterialId,
 } from '../domain/memorialProject'
 import { PROJECT_PRESETS } from '../domain/presets'
+import {
+  createProjectFromSourceCatalogModel,
+  getSourceStone,
+  SOURCE_CATALOG_MODELS,
+  updateSourceCatalogVariant,
+  type SourceCatalogCategory,
+} from '../domain/sourceCatalog'
 import type { RenderFormat } from '../export/projectExports'
 import type { CameraPreset } from '../scene/CameraControls'
 
@@ -77,11 +84,23 @@ export function ConfiguratorPanel({
   shareOmitsPortrait,
 }: Props) {
   const [activeSteleIndex, setActiveSteleIndex] = useState(0)
+  const [sourceCatalogCategory, setSourceCatalogCategory] = useState<SourceCatalogCategory>(() =>
+    SOURCE_CATALOG_MODELS.find((item) => item.id === project.catalogSource?.modelId)?.category ?? 'single',
+  )
   const visibleSteles = getVisibleSteles(project)
   const safeIndex = Math.min(activeSteleIndex, Math.max(0, visibleSteles.length - 1))
   const activeStele = visibleSteles[safeIndex] ?? project.steles[0]
   const diagnostics = validateProjectCompatibility(project)
   const standardGlassSize = findStandardGlassSteleSize(activeStele.monument.widthM, activeStele.monument.heightM)
+  const currentSourceModel = project.catalogSource
+    ? SOURCE_CATALOG_MODELS.find((item) => item.id === project.catalogSource?.modelId) ?? null
+    : null
+  const sourceCatalogModels = SOURCE_CATALOG_MODELS.filter((item) => item.category === sourceCatalogCategory)
+  const sourceVariantIndex = project.catalogSource?.variantIndex ?? null
+  const currentSourceVariant = currentSourceModel && sourceVariantIndex !== null
+    ? currentSourceModel.variants[sourceVariantIndex] ?? null
+    : null
+  const currentSourceStone = getSourceStone(activeStele.monument.stoneCode)
 
   useEffect(() => {
     if (activeSteleIndex !== safeIndex) setActiveSteleIndex(safeIndex)
@@ -193,6 +212,18 @@ export function ConfiguratorPanel({
     setActiveSteleIndex(0)
   }
 
+  const applySourceCatalogModel = (modelId: string) => {
+    const model = SOURCE_CATALOG_MODELS.find((item) => item.id === modelId)
+    if (!model) return
+    onChange(createProjectFromSourceCatalogModel(model.id))
+    setSourceCatalogCategory(model.category)
+    setActiveSteleIndex(0)
+  }
+
+  const setSourceVariant = (variantIndex: number, stoneCode?: string | null) => {
+    onChange(updateSourceCatalogVariant(project, variantIndex, stoneCode))
+  }
+
   const addFamily = () => {
     const next = addFamilyStele(project)
     onChange(next)
@@ -241,6 +272,94 @@ export function ConfiguratorPanel({
               </button>
             </div>
             <p className="field-hint">В редакторе поддерживается до {FAMILY_UI_MAX_STELES} стел в семейной композиции.</p>
+          </>
+        )}
+      </section>
+
+      <section>
+        <h2>Исходный каталог — 150 моделей</h2>
+        <p className="field-hint">
+          Формы и размеры перенесены из исходного каталога. Плоские модели редактируются как source-derived 3D-профили.
+        </p>
+        <label className="field">
+          <span>Раздел</span>
+          <select value={sourceCatalogCategory} onChange={(e) => setSourceCatalogCategory(e.target.value as SourceCatalogCategory)}>
+            <option value="combined">Комбинированные — 22</option>
+            <option value="single">Одиночные и фигурные — 85</option>
+            <option value="family">Семейные — 22</option>
+            <option value="elite">Элитные — 21</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Модель</span>
+          <select
+            value={currentSourceModel?.category === sourceCatalogCategory ? currentSourceModel.id : ''}
+            onChange={(e) => applySourceCatalogModel(e.target.value)}
+          >
+            <option value="">Выберите модель</option>
+            {sourceCatalogModels.map((model) => (
+              <option value={model.id} key={model.id}>
+                {model.code === 'RECT' ? 'Прямоугольный' : `№ ${model.code}`}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {currentSourceModel?.category === sourceCatalogCategory && (
+          <>
+            <p className="field-hint">
+              Источник: стр. {currentSourceModel.sourcePage}. Геометрия: {
+                currentSourceModel.geometryMode === 'catalog-profile'
+                  ? 'профиль восстановлен по каталожной форме'
+                  : currentSourceModel.geometryMode === 'mesh-required'
+                    ? 'требуется точный скульптурный mesh'
+                    : 'процедурная форма'
+              }.
+            </p>
+
+            {currentSourceModel.variants.length > 0 && (
+              <label className="field">
+                <span>Размер из каталога</span>
+                <select value={sourceVariantIndex ?? 0} onChange={(e) => setSourceVariant(Number(e.target.value))}>
+                  {currentSourceModel.variants.map((variant, index) => (
+                    <option value={index} key={`${currentSourceModel.id}-variant-${index}`}>
+                      {variant.heightMm} × {variant.widthMm} × {variant.depthMm} мм
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {currentSourceVariant && currentSourceVariant.stoneCodes.length > 0 && (
+              <label className="field">
+                <span>Камень</span>
+                <select
+                  value={activeStele.monument.stoneCode ?? currentSourceVariant.stoneCodes[0]}
+                  onChange={(e) => setSourceVariant(sourceVariantIndex ?? 0, e.target.value)}
+                >
+                  {currentSourceVariant.stoneCodes.map((code) => (
+                    <option value={code} key={code}>
+                      {code}{getSourceStone(code)?.name ? ` — ${getSourceStone(code)?.name}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+
+            {currentSourceStone && (
+              <p className="field-hint">
+                {currentSourceStone.sourceStatus === 'documented'
+                  ? `${currentSourceStone.name}: плотность ${currentSourceStone.densityGcm3} г/см³; прочность ${currentSourceStone.compression}; водопоглощение ${currentSourceStone.waterAbsorption}; морозостойкость ${currentSourceStone.frostResistance}.`
+                  : `${currentSourceStone.code}: физические характеристики не зафиксированы в доступной таблице исходного каталога.`}
+              </p>
+            )}
+
+            {currentSourceModel.sourceNote && <p className="field-hint">{currentSourceModel.sourceNote}</p>}
+            {currentSourceModel.geometryMode === 'mesh-required' && (
+              <p className="field-error">
+                Для этой элитной модели точный скульптурный 3D-mesh ещё не загружен. Сейчас показывается только размерный редактируемый proxy; его нельзя считать точной производственной геометрией.
+              </p>
+            )}
           </>
         )}
       </section>

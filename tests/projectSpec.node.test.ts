@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDefaultProject, withLayout } from '../src/domain/memorialProject.ts'
 import { buildProjectSpecification } from '../src/domain/projectSpec.ts'
+import { createProjectFromSourceCatalogModel } from '../src/domain/sourceCatalog.ts'
 
 test('single project specification exposes monument and complex without prices', () => {
   const project = createDefaultProject()
@@ -68,4 +69,27 @@ test('project specification keeps inscription placeholders explicit', () => {
   assert.equal(inscription?.rows.find((row) => row.label === 'Оформление портрета')?.value, 'Овал')
   assert.equal(inscription?.rows.find((row) => row.label === 'Размер портрета')?.value, '110%')
   assert.equal(inscription?.rows.find((row) => row.label === 'Эпитафия')?.value, '—')
+})
+
+
+test('source catalog project specification preserves model, size and stone provenance', () => {
+  const project = createProjectFromSourceCatalogModel('ERMIS-SINGLE-20')
+  const spec = buildProjectSpecification(project)
+  const source = spec.sections.find((section) => section.title === 'Источник модели')
+  assert.equal(source?.rows.find((row) => row.label === 'Модель')?.value, '№ 20')
+  assert.equal(source?.rows.find((row) => row.label === 'Страница каталога')?.value, '12')
+  assert.equal(source?.rows.find((row) => row.label === 'Исходный типоразмер')?.value, '1100 × 600 × 70 мм (В × Ш × Т)')
+  assert.equal(source?.rows.find((row) => row.label === 'Код камня')?.value, 'К06 — BLACK GABBRO')
+
+  const monument = spec.sections.find((section) => section.title === 'Памятник')
+  assert.equal(monument?.rows.find((row) => row.label === 'Поверхность')?.value, 'К06 — BLACK GABBRO')
+})
+
+test('glass panel flowerbed keeps its managed name in specification', () => {
+  const project = createDefaultProject()
+  project.flowerBed.enabled = true
+  project.flowerBed.styleId = 'glass-panel-granite-frame'
+  const spec = buildProjectSpecification(project)
+  const complex = spec.sections.find((section) => section.title === 'Мемориальный комплекс')
+  assert.equal(complex?.rows.find((row) => row.label === 'Цветник')?.value, 'Стеклянная панель в гранитной рамке')
 })

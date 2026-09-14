@@ -57,6 +57,16 @@ export interface MonumentConfig {
   widthM: number
   heightM: number
   depthM: number
+  profileId?: string | null
+  stoneCode?: string | null
+}
+
+export interface CatalogSourceProvenance {
+  modelId: string
+  modelCode: string
+  sourcePage: number
+  geometryMode: 'catalog-profile' | 'procedural' | 'mesh-required'
+  variantIndex: number | null
 }
 
 export interface PortraitConfig {
@@ -87,6 +97,7 @@ export interface MemorialStele {
 export interface MemorialProject {
   schemaVersion: 6
   projectId: string
+  catalogSource?: CatalogSourceProvenance | null
   layout: {
     type: LayoutType
     gapM: number
@@ -250,6 +261,35 @@ function createFamilyCompanionStele(id: string, index: number): MemorialStele {
   return stele
 }
 
+function normalizeProfileId(value: string | null | undefined): string | null {
+  if (!value) return null
+  const normalized = value.trim().toLowerCase()
+  return /^ermis-(combined|single|family)-[a-z0-9-]{1,40}$/.test(normalized) ? normalized : null
+}
+
+function normalizeStoneCode(value: string | null | undefined): string | null {
+  if (!value) return null
+  const normalized = value.trim().toUpperCase()
+  return /^(?:К\d{2}|G654)$/.test(normalized) ? normalized : null
+}
+
+function normalizeCatalogSource(
+  value: CatalogSourceProvenance | null | undefined,
+): CatalogSourceProvenance | null {
+  if (!value) return null
+  const modelId = typeof value.modelId === 'string' ? value.modelId.trim().toUpperCase() : ''
+  const modelCode = typeof value.modelCode === 'string' ? value.modelCode.trim().toUpperCase() : ''
+  const sourcePage = Number(value.sourcePage)
+  const variantIndex = value.variantIndex === null ? null : Number(value.variantIndex)
+  const geometryMode = value.geometryMode
+  if (!/^ERMIS-(?:COMBINED|SINGLE|FAMILY|ELITE)-[A-Z0-9-]{1,24}$/.test(modelId)) return null
+  if (!/^[A-Z0-9-]{1,16}$/.test(modelCode)) return null
+  if (!Number.isInteger(sourcePage) || sourcePage < 1 || sourcePage > 200) return null
+  if (!['catalog-profile', 'procedural', 'mesh-required'].includes(geometryMode)) return null
+  if (variantIndex !== null && (!Number.isInteger(variantIndex) || variantIndex < 0 || variantIndex > 99)) return null
+  return { modelId, modelCode, sourcePage, geometryMode, variantIndex }
+}
+
 function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele {
   const id = typeof input.id === 'string' && input.id.trim() ? input.id.trim() : fallbackId
   const glass = normalizeGlassSteleConfig(input.glass)
@@ -266,6 +306,8 @@ function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele
       widthM: clamp(input.monument.widthM, 0.3, 2.5),
       heightM: clamp(input.monument.heightM, 0.5, 3),
       depthM: normalizedDepth,
+      profileId: normalizeProfileId(input.monument.profileId),
+      stoneCode: normalizeStoneCode(input.monument.stoneCode),
     },
     portrait: {
       ...input.portrait,
@@ -349,6 +391,7 @@ export function normalizeProject(input: MemorialProject): MemorialProject {
   return {
     ...input,
     schemaVersion: PROJECT_SCHEMA_VERSION,
+    catalogSource: normalizeCatalogSource(input.catalogSource),
     layout: {
       type: input.layout.type,
       gapM: clamp(input.layout.gapM, 0.04, 0.8),

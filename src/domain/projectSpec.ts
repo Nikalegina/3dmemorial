@@ -1,7 +1,8 @@
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from './catalog.ts'
-import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
+import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, FLOWER_BED_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
 import { findStandardGlassSteleSize, GLASS_CLARITY_OPTIONS, GLASS_MOUNT_OPTIONS, GLASS_UV_PRINT_OPTIONS } from './glassMemorial.ts'
 import { getVisibleSteles, type MemorialProject } from './memorialProject.ts'
+import { getSourceStone, SOURCE_CATALOG_MODELS } from './sourceCatalog.ts'
 
 export interface ProjectSpecRow {
   label: string
@@ -36,6 +37,13 @@ function enabled(value: boolean): string {
 
 export function buildProjectSpecification(project: MemorialProject): ProjectSpecification {
   const visibleSteles = getVisibleSteles(project)
+  const sourceModel = project.catalogSource
+    ? SOURCE_CATALOG_MODELS.find((model) => model.id === project.catalogSource?.modelId) ?? null
+    : null
+  const sourceVariant = sourceModel && project.catalogSource?.variantIndex !== null
+    ? sourceModel.variants[project.catalogSource?.variantIndex ?? -1] ?? null
+    : null
+  const sourceStone = getSourceStone(project.steles[0]?.monument.stoneCode)
   const multi = visibleSteles.length > 1
   const steleSections = visibleSteles.flatMap((stele, index): ProjectSpecSection[] => {
     const suffix = multi ? ` ${index + 1}` : ''
@@ -58,7 +66,12 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
         rows: [
           { label: 'Форма', value: catalogName(MONUMENT_SHAPES, stele.monument.shape) },
           { label: 'Исполнение', value: constructionNames[stele.monument.material] ?? stele.monument.material },
-          { label: 'Поверхность', value: catalogName(MATERIALS, stele.monument.surfaceId) },
+          {
+            label: 'Поверхность',
+            value: stele.monument.stoneCode && getSourceStone(stele.monument.stoneCode)
+              ? `${stele.monument.stoneCode} — ${getSourceStone(stele.monument.stoneCode)?.name}`
+              : catalogName(MATERIALS, stele.monument.surfaceId),
+          },
           {
             label: 'Размеры',
             value: `${stele.monument.widthM.toFixed(3)} × ${stele.monument.heightM.toFixed(3)} × ${stele.monument.depthM.toFixed(3)} м`,
@@ -83,7 +96,7 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
 
   const complexRows: ProjectSpecRow[] = [
     { label: 'Цоколь', value: project.plinth.enabled ? (project.plinth.materialId === 'gabbro' ? 'Чёрный габбро' : 'Серый гранит') : 'Нет' },
-    { label: 'Цветник', value: project.flowerBed.enabled ? (project.flowerBed.styleId === 'open-granite' ? 'Открытый гранитный' : 'Закрытый гранитный') : 'Нет' },
+    { label: 'Цветник', value: project.flowerBed.enabled ? catalogName(FLOWER_BED_STYLES, project.flowerBed.styleId) : 'Нет' },
     { label: 'Покрытие', value: project.paving.enabled ? catalogName(PAVING_STYLES, project.paving.styleId) : 'Нет' },
     { label: 'Бордюр', value: project.border.enabled ? catalogName(BORDER_STYLES, project.border.styleId) : 'Нет' },
     { label: 'Ограда', value: project.fence.enabled ? catalogName(FENCE_STYLES, project.fence.styleId) : 'Нет' },
@@ -96,6 +109,35 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
     title: 'КРЫМ МОНУМЕНТ — спецификация 3D-проекта',
     projectId: project.projectId,
     sections: [
+      ...(sourceModel ? [{
+        title: 'Источник модели',
+        rows: [
+          { label: 'Модель', value: sourceModel.code === 'RECT' ? 'Прямоугольный' : `№ ${sourceModel.code}` },
+          { label: 'Категория', value: sourceModel.categoryLabel },
+          { label: 'Страница каталога', value: String(sourceModel.sourcePage) },
+          {
+            label: 'Геометрия',
+            value: sourceModel.geometryMode === 'catalog-profile'
+              ? 'Source-derived редактируемый профиль'
+              : sourceModel.geometryMode === 'mesh-required'
+                ? 'Размерный proxy; точный скульптурный mesh требуется отдельно'
+                : 'Процедурная форма',
+          },
+          ...(sourceVariant ? [{
+            label: 'Исходный типоразмер',
+            value: `${sourceVariant.heightMm} × ${sourceVariant.widthMm} × ${sourceVariant.depthMm} мм (В × Ш × Т)`,
+          }] : []),
+          ...(sourceStone ? [
+            { label: 'Код камня', value: `${sourceStone.code} — ${sourceStone.name}` },
+            {
+              label: 'Характеристики камня',
+              value: sourceStone.sourceStatus === 'documented'
+                ? `плотность ${sourceStone.densityGcm3} г/см³; прочность ${sourceStone.compression}; водопоглощение ${sourceStone.waterAbsorption}; морозостойкость ${sourceStone.frostResistance}`
+                : 'В доступной таблице исходного каталога характеристики не зафиксированы',
+            },
+          ] : []),
+        ],
+      } satisfies ProjectSpecSection] : []),
       {
         title: 'Участок',
         rows: [
