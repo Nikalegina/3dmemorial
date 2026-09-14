@@ -158,6 +158,33 @@ jobs:
           grep -q 'data-visible-steles="2"' browser-artifacts/catalog-combined-dom.html
           browser_screenshot "$CATALOG_COMBINED_URL" browser-artifacts/catalog-granite-glass.png
 
+          SOURCE_MODEL_URL="http://127.0.0.1:4173/?sourceSku=ERMIS-SINGLE-20"
+          browser_dump "$SOURCE_MODEL_URL" browser-artifacts/source-model-20-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/source-model-20-dom.html
+          grep -q 'data-source-sku="ERMIS-SINGLE-20"' browser-artifacts/source-model-20-dom.html
+          grep -q 'data-source-catalog-model-id="ERMIS-SINGLE-20"' browser-artifacts/source-model-20-dom.html
+          grep -q 'data-source-catalog-geometry="catalog-profile"' browser-artifacts/source-model-20-dom.html
+          grep -q 'data-source-profile-id="ermis-single-20"' browser-artifacts/source-model-20-dom.html
+          grep -q 'data-source-stone-code="К06"' browser-artifacts/source-model-20-dom.html
+          grep -q '1100 × 600 × 70 мм' browser-artifacts/source-model-20-dom.html
+          grep -q 'BLACK GABBRO' browser-artifacts/source-model-20-dom.html
+          browser_screenshot "$SOURCE_MODEL_URL" browser-artifacts/source-model-20.png
+
+          SOURCE_FAMILY_URL="http://127.0.0.1:4173/?sourceSku=ERMIS-FAMILY-16"
+          browser_dump "$SOURCE_FAMILY_URL" browser-artifacts/source-family-16-dom.html
+          grep -q 'data-source-catalog-model-id="ERMIS-FAMILY-16"' browser-artifacts/source-family-16-dom.html
+          grep -q 'data-source-profile-id="ermis-family-16"' browser-artifacts/source-family-16-dom.html
+          grep -q '900 × 1000 × 70 мм' browser-artifacts/source-family-16-dom.html
+          browser_screenshot "$SOURCE_FAMILY_URL" browser-artifacts/source-family-16.png
+
+          SOURCE_ELITE_URL="http://127.0.0.1:4173/?sourceSku=ERMIS-ELITE-25"
+          browser_dump "$SOURCE_ELITE_URL" browser-artifacts/source-elite-25-dom.html
+          grep -q 'data-source-catalog-model-id="ERMIS-ELITE-25"' browser-artifacts/source-elite-25-dom.html
+          grep -q 'data-source-catalog-geometry="mesh-required"' browser-artifacts/source-elite-25-dom.html
+          grep -q '2500 × 1200 × 300 мм' browser-artifacts/source-elite-25-dom.html
+          grep -q 'точный скульптурный 3D-mesh ещё не загружен' browser-artifacts/source-elite-25-dom.html
+          browser_screenshot "$SOURCE_ELITE_URL" browser-artifacts/source-elite-25-proxy.png
+
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
           grep -q 'data-webgl-ready="true"' browser-artifacts/mobile-dom.html
