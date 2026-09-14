@@ -100,13 +100,12 @@ test('source project factory keeps exact figured catalog dimensions and variant 
   assert.equal(findSourceCatalogVariantIndex(profile, monument), 2)
 })
 
-test('family source profile is independently addressable from figured model with same number', () => {
+test('family source profile lookup is category-aware and reflects the actual source inventory', () => {
   const figured17 = getSourceCatalogProfileByModel('17', 'figured')
   const family17 = getSourceCatalogProfileByModel('17', 'family')
 
-  assert.ok(figured17)
+  assert.equal(figured17, null)
   assert.ok(family17)
-  assert.equal(figured17.id, 'ermis-17')
   assert.equal(family17.id, 'ermis-family-17')
   assert.equal(family17.sourceCategory, 'family')
   assert.deepEqual(family17.variants[0], {
