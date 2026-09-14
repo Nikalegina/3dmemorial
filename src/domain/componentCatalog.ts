@@ -25,8 +25,8 @@ export const TABLE_STYLES = [
 ] as const
 
 export const VASE_STYLES = [
-  { id: 'classic-vase', name: 'Классическая ваза', heightM: 0.38 },
-  { id: 'tall-vase', name: 'Высокая ваза', heightM: 0.5 },
+  { id: 'classic-vase', name: 'Классическая ваза', heightM: 0.34 },
+  { id: 'tall-vase', name: 'Высокая ваза', heightM: 0.44 },
 ] as const
 
 export type PavingStyleId = typeof PAVING_STYLES[number]['id']

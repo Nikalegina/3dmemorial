@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import {
   BENCH_STYLES,
   BORDER_STYLES,
@@ -84,14 +85,71 @@ function Border({ project }: { project: MemorialProject }) {
   )
 }
 
+function PavingSurface({ project }: { project: MemorialProject }) {
+  if (!project.paving.enabled) return null
+  const w = project.plot.widthM
+  const d = project.plot.depthM
+  const paving = PAVING_STYLES.find((item) => item.id === project.paving.styleId) ?? PAVING_STYLES[0]
+  const showJoints = paving.id !== 'gravel-light'
+  const columns = paving.id === 'granite-dark' ? 2 : 4
+  const rows = paving.id === 'granite-dark' ? 3 : 6
+  const jointColor = paving.id === 'granite-dark' ? '#202224' : '#66645f'
+
+  return (
+    <group>
+      <mesh position={[0, 0.025, 0]} receiveShadow>
+        <boxGeometry args={[w, 0.05, d]} />
+        <meshStandardMaterial color={paving.color} roughness={paving.roughness} />
+      </mesh>
+
+      {showJoints && Array.from({ length: columns - 1 }, (_, index) => {
+        const x = -w / 2 + (w / columns) * (index + 1)
+        return (
+          <mesh key={`paving-x-${index}`} position={[x, 0.052, 0]}>
+            <boxGeometry args={[0.012, 0.006, d * 0.99]} />
+            <meshStandardMaterial color={jointColor} roughness={0.9} />
+          </mesh>
+        )
+      })}
+
+      {showJoints && Array.from({ length: rows - 1 }, (_, index) => {
+        const z = -d / 2 + (d / rows) * (index + 1)
+        return (
+          <mesh key={`paving-z-${index}`} position={[0, 0.052, z]}>
+            <boxGeometry args={[w * 0.99, 0.006, 0.012]} />
+            <meshStandardMaterial color={jointColor} roughness={0.9} />
+          </mesh>
+        )
+      })}
+    </group>
+  )
+}
+
 function Vase({ project, side }: { project: MemorialProject; side: 'left' | 'right' }) {
   const style = VASE_STYLES.find((item) => item.id === project.vase.styleId) ?? VASE_STYLES[0]
   const compositionWidth = getCompositionWidth(project)
   const x = (side === 'left' ? -1 : 1) * Math.max(0.34, compositionWidth * 0.58)
+  const h = style.heightM
+  const points = [
+    new THREE.Vector2(0.052, 0),
+    new THREE.Vector2(0.068, h * 0.08),
+    new THREE.Vector2(0.075, h * 0.28),
+    new THREE.Vector2(0.066, h * 0.52),
+    new THREE.Vector2(0.083, h * 0.78),
+    new THREE.Vector2(0.094, h * 0.93),
+    new THREE.Vector2(0.082, h),
+  ]
+
   return (
-    <mesh position={[x, style.heightM / 2 + 0.1, -project.plot.depthM * 0.2]} castShadow>
-      <cylinderGeometry args={[0.085, 0.065, style.heightM, 24]} />
-      <meshPhysicalMaterial color="#151719" roughness={0.2} clearcoat={0.35} />
+    <mesh position={[x, 0.11, -project.plot.depthM * 0.2]} castShadow>
+      <latheGeometry args={[points, 32]} />
+      <meshPhysicalMaterial
+        color="#151719"
+        roughness={0.17}
+        clearcoat={0.52}
+        clearcoatRoughness={0.1}
+        envMapIntensity={1.1}
+      />
     </mesh>
   )
 }
@@ -99,12 +157,14 @@ function Vase({ project, side }: { project: MemorialProject; side: 'left' | 'rig
 export function MemorialEnvironment({ project }: { project: MemorialProject }) {
   const w = project.plot.widthM
   const d = project.plot.depthM
-  const paving = PAVING_STYLES.find((item) => item.id === project.paving.styleId) ?? PAVING_STYLES[0]
   const bench = BENCH_STYLES.find((item) => item.id === project.bench.styleId) ?? BENCH_STYLES[0]
   const table = TABLE_STYLES.find((item) => item.id === project.table.styleId) ?? TABLE_STYLES[0]
   const benchSide = project.bench.side === 'left' ? -1 : 1
   const tableSide = project.table.side === 'left' ? -1 : 1
   const plinthColor = project.plinth.materialId === 'grey-granite' ? '#646566' : '#252729'
+  const compositionWidth = getCompositionWidth(project)
+  const flowerBedWidth = Math.min(w * 0.62, Math.max(0.72, compositionWidth * 0.9))
+  const flowerSideX = flowerBedWidth / 2 - 0.04
 
   return (
     <group>
@@ -113,29 +173,28 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
         <meshStandardMaterial color="#b8b19e" roughness={0.96} />
       </mesh>
 
-      {project.paving.enabled && (
-        <mesh position={[0, 0.025, 0]} receiveShadow>
-          <boxGeometry args={[w, 0.05, d]} />
-          <meshStandardMaterial color={paving.color} roughness={paving.roughness} />
-        </mesh>
-      )}
-
+      <PavingSurface project={project} />
       <Border project={project} />
 
       {project.plinth.enabled && (
         <mesh position={[0, 0.085, 0]} receiveShadow>
           <boxGeometry args={[w * 0.78, 0.12, d * 0.68]} />
-          <meshStandardMaterial color={plinthColor} roughness={0.3} />
+          <meshPhysicalMaterial
+            color={plinthColor}
+            roughness={0.26}
+            clearcoat={project.plinth.materialId === 'gabbro' ? 0.28 : 0.14}
+            clearcoatRoughness={0.15}
+          />
         </mesh>
       )}
 
       {project.flowerBed.enabled && (
         <group position={[0, 0.14, d * 0.18]}>
-          <mesh position={[0, 0.06, -0.36]}><boxGeometry args={[0.72, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" /></mesh>
-          <mesh position={[-0.32, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" /></mesh>
-          <mesh position={[0.32, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" /></mesh>
-          {project.flowerBed.styleId === 'closed-granite' && <mesh position={[0, 0.06, 0.36]}><boxGeometry args={[0.72, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" /></mesh>}
-          <mesh position={[0, 0.015, 0]}><boxGeometry args={[0.56, 0.03, 0.62]} /><meshStandardMaterial color="#49392b" roughness={1} /></mesh>
+          <mesh position={[0, 0.06, -0.36]}><boxGeometry args={[flowerBedWidth, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
+          <mesh position={[-flowerSideX, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
+          <mesh position={[flowerSideX, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
+          {project.flowerBed.styleId === 'closed-granite' && <mesh position={[0, 0.06, 0.36]}><boxGeometry args={[flowerBedWidth, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>}
+          <mesh position={[0, 0.015, 0]}><boxGeometry args={[Math.max(0.46, flowerBedWidth - 0.16), 0.03, 0.62]} /><meshStandardMaterial color="#49392b" roughness={1} /></mesh>
         </group>
       )}
 

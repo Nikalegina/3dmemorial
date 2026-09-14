@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
-import { getMaterialDefinition, type MaterialDefinition } from '../domain/catalog'
+import { getMaterialDefinition } from '../domain/catalog'
 import {
   getCompositionWidth,
   getSteleLayoutPositions,
@@ -10,33 +10,7 @@ import {
 import { createSteleGeometry } from './geometry'
 import { InscriptionPlane } from './InscriptionPlane'
 import { PortraitPlane } from './PortraitPlane'
-
-function SurfaceMaterial({ definition }: { definition: MaterialDefinition }) {
-  if (definition.kind === 'glass') {
-    return (
-      <meshPhysicalMaterial
-        color={definition.color}
-        roughness={definition.roughness}
-        transmission={definition.transmission ?? 0.9}
-        thickness={definition.thickness ?? 0.08}
-        ior={definition.ior ?? 1.45}
-        transparent
-        opacity={0.96}
-        side={THREE.DoubleSide}
-      />
-    )
-  }
-
-  return (
-    <meshPhysicalMaterial
-      color={definition.color}
-      roughness={definition.roughness}
-      metalness={definition.metalness ?? 0.02}
-      clearcoat={definition.clearcoat ?? 0.35}
-      clearcoatRoughness={definition.clearcoatRoughness ?? 0.15}
-    />
-  )
-}
+import { SteleSurfaceMaterial } from './SteleSurfaceMaterial'
 
 function SteleMonument({
   stele,
@@ -54,28 +28,47 @@ function SteleMonument({
     () => createSteleGeometry(monument.widthM, monument.heightM, monument.depthM, monument.shape),
     [monument.depthM, monument.heightM, monument.shape, monument.widthM],
   )
-  useEffect(() => () => geometry.dispose(), [geometry])
+  const edges = useMemo(() => new THREE.EdgesGeometry(geometry, 28), [geometry])
+
+  useEffect(() => () => {
+    edges.dispose()
+    geometry.dispose()
+  }, [edges, geometry])
 
   const surface = getMaterialDefinition(monument.surfaceId)
   const faceZ = monument.depthM / 2 + 0.013
+  const isGlass = surface.kind === 'glass'
 
   return (
     <group position={[x, baseHeight, 0]}>
       <mesh geometry={geometry} castShadow receiveShadow>
-        <SurfaceMaterial definition={surface} />
+        <SteleSurfaceMaterial definition={surface} />
       </mesh>
+
+      <lineSegments geometry={edges} renderOrder={3}>
+        <lineBasicMaterial
+          color={isGlass ? '#e9ffff' : '#8a8f91'}
+          transparent
+          opacity={isGlass ? 0.42 : 0.14}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </lineSegments>
 
       {monument.material === 'hybrid' && (
         <mesh position={[0, monument.heightM * 0.57, monument.depthM / 2 + 0.004]}>
           <planeGeometry args={[monument.widthM * 0.6, monument.heightM * 0.6]} />
           <meshPhysicalMaterial
             color="#d9e9eb"
-            transmission={0.95}
+            transmission={0.98}
             thickness={0.055}
             ior={1.45}
-            roughness={0.045}
+            roughness={0.035}
+            clearcoat={1}
+            clearcoatRoughness={0.02}
+            envMapIntensity={1.6}
             transparent
-            opacity={0.96}
+            opacity={1}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -84,7 +77,7 @@ function SteleMonument({
       {stele.portrait.enabled && (
         <PortraitPlane url={portraitUrl} stele={stele} z={faceZ} />
       )}
-      <InscriptionPlane stele={stele} z={faceZ + 0.001} />
+      <InscriptionPlane stele={stele} z={faceZ + 0.0015} />
     </group>
   )
 }
@@ -106,8 +99,15 @@ export function Monument({
   return (
     <group position={[0, 0, monumentZ]}>
       <mesh position={[0, baseHeight / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[compositionWidth + 0.28, baseHeight, baseDepth]} />
-        <meshPhysicalMaterial color="#151719" roughness={0.2} clearcoat={0.28} clearcoatRoughness={0.16} />
+        <boxGeometry args={[compositionWidth + 0.3, baseHeight, baseDepth]} />
+        <meshPhysicalMaterial
+          color="#141618"
+          roughness={0.18}
+          metalness={0.01}
+          clearcoat={0.48}
+          clearcoatRoughness={0.12}
+          envMapIntensity={1.1}
+        />
       </mesh>
 
       {positions.map(({ stele, x }) => (
