@@ -11,8 +11,10 @@ import { createSteleGeometry } from './geometry'
 import { InscriptionPlane } from './InscriptionPlane'
 import { PortraitPlane } from './PortraitPlane'
 import { SteleSurfaceMaterial } from './SteleSurfaceMaterial'
+import { EliteCompoundStele } from './EliteCompoundStele'
+import { isEliteCompoundProfileId } from './eliteCompoundGeometry'
 
-function SteleMonument({
+function StandardSteleMonument({
   stele,
   x,
   portraitUrl,
@@ -94,6 +96,39 @@ function SteleMonument({
       )}
       <InscriptionPlane stele={stele} z={faceZ + (isGlass ? 0.00015 : 0.0015)} />
     </group>
+  )
+}
+
+function SteleMonument({
+  stele,
+  x,
+  portraitUrl,
+  baseHeight,
+}: {
+  stele: MemorialStele
+  x: number
+  portraitUrl: string | null
+  baseHeight: number
+}) {
+  if (isEliteCompoundProfileId(stele.monument.shape)) {
+    return (
+      <group position={[x, baseHeight, 0]}>
+        <EliteCompoundStele
+          profileId={stele.monument.shape}
+          stele={stele}
+          portraitUrl={portraitUrl}
+        />
+      </group>
+    )
+  }
+
+  return (
+    <StandardSteleMonument
+      stele={stele}
+      x={x}
+      portraitUrl={portraitUrl}
+      baseHeight={baseHeight}
+    />
   )
 }
 
