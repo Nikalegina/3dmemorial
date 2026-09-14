@@ -24,17 +24,31 @@ const ENCODED_SOURCE_PROFILES: Record<string, string> = {
 function decodeProfile(encoded: string): readonly SourceCatalogProfilePoint[] {
   const binary = atob(encoded)
   const count = binary.charCodeAt(0)
-  const points: SourceCatalogProfilePoint[] = []
+  const raw: SourceCatalogProfilePoint[] = []
   for (let index = 0; index < count; index += 1) {
     const offset = 1 + index * 4
     const xi = (binary.charCodeAt(offset) << 8) | binary.charCodeAt(offset + 1)
     const yi = (binary.charCodeAt(offset + 2) << 8) | binary.charCodeAt(offset + 3)
-    points.push({
+    raw.push({
       x: (xi / 65535) * 1.2 - 0.6,
       y: yi / 65535,
     })
   }
-  return points
+
+  const minX = Math.min(...raw.map((point) => point.x))
+  const maxX = Math.max(...raw.map((point) => point.x))
+  const minY = Math.min(...raw.map((point) => point.y))
+  const maxY = Math.max(...raw.map((point) => point.y))
+  const width = Math.max(0.000001, maxX - minX)
+  const height = Math.max(0.000001, maxY - minY)
+  const centerX = (minX + maxX) / 2
+
+  // Source dimensions define the physical bounding box. Normalize traced catalog
+  // silhouettes to exactly [-0.5..0.5] × [0..1] before applying WIDTH/HEIGHT.
+  return raw.map((point) => ({
+    x: (point.x - centerX) / width,
+    y: (point.y - minY) / height,
+  }))
 }
 
 export function hasSourceCatalogProfile(profileId: string | null | undefined): boolean {
