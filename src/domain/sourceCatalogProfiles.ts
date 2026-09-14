@@ -3,6 +3,7 @@ import { SOURCE_CATALOG_RAW_PART_1 } from './sourceCatalogProfiles.part1.ts'
 import { SOURCE_CATALOG_RAW_PART_2 } from './sourceCatalogProfiles.part2.ts'
 import { SOURCE_CATALOG_RAW_FAMILY } from './sourceCatalogProfiles.family.ts'
 import { SOURCE_CATALOG_RAW_ELITE } from './sourceCatalogProfiles.elite.ts'
+import { eliteModelSupportsFaceArtwork } from './eliteCatalog.ts'
 import { getSourceStoneMaterial, resolveSourceStoneCodes } from './sourceStoneMaterials.ts'
 import type {
   SourceCatalogCategory,
@@ -89,6 +90,10 @@ export function createSourceCatalogProject(
   project.steles[0].monument.depthM = variant.depthMm / 1000
   project.steles[0].portrait.mode = 'bw'
   project.steles[0].portrait.frame = 'oval'
+  if (!eliteModelSupportsFaceArtwork(id)) {
+    project.steles[0].portrait.enabled = false
+    project.steles[0].inscription.enabled = false
+  }
   project.plinth.enabled = true
   project.flowerBed.enabled = true
   project.flowerBed.styleId = 'open-granite'
