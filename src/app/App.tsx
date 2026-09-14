@@ -10,6 +10,7 @@ import {
 } from '../domain/memorialProject'
 import { loadLocalProject, saveLocalProject } from '../domain/projectStorage'
 import { createShareUrl } from '../domain/shareProject'
+import { createQuoteRequestEnvelope, publishQuoteRequest } from '../integration/hostBridge'
 import { buildProjectPdf, canvasToBlob, type RenderFormat } from '../export/projectExports'
 import { MemorialCanvas } from '../scene/MemorialCanvas'
 import type { CameraPreset } from '../scene/CameraControls'
@@ -32,6 +33,7 @@ export function App() {
   const [cameraPreset, setCameraPreset] = useState<CameraPreset>('perspective')
   const [renderCanvas, setRenderCanvas] = useState<HTMLCanvasElement | null>(null)
   const [shareStatus, setShareStatus] = useState<string | null>(null)
+  const [quoteStatus, setQuoteStatus] = useState<string | null>(null)
   const [exportStatus, setExportStatus] = useState<string | null>(null)
   const [importStatus, setImportStatus] = useState<string | null>(null)
   const [highQualityRender, setHighQualityRender] = useState(false)
@@ -168,6 +170,31 @@ export function App() {
     }
   }
 
+  const requestQuote = async () => {
+    const projectUrl = createShareUrl(normalized, window.location.href)
+    const envelope = createQuoteRequestEnvelope(
+      normalized,
+      projectUrl,
+      startup.source,
+      startup.context,
+    )
+    const delivery = publishQuoteRequest(envelope)
+
+    if (delivery.parentPosted) {
+      setQuoteStatus('Проект передан основной странице. Контактные данные заполняются в форме сайта.')
+      return
+    }
+
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard unavailable')
+      await navigator.clipboard.writeText(projectUrl)
+      setQuoteStatus('Ссылка на проект скопирована. В тестовом режиме заявка автоматически не отправляется.')
+    } catch {
+      window.prompt('Скопируйте ссылку на проект для расчёта', projectUrl)
+      setQuoteStatus('Проект подготовлен. В тестовом режиме CRM-отправка не подключена.')
+    }
+  }
+
   return (
     <main
       className="app-shell"
@@ -208,6 +235,8 @@ export function App() {
         importStatus={importStatus}
         onShare={shareProject}
         shareStatus={shareStatus}
+        onRequestQuote={requestQuote}
+        quoteStatus={quoteStatus}
         shareOmitsPortrait={Object.keys(portraitUrls).length > 0}
       />
     </main>
