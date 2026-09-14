@@ -1,7 +1,26 @@
 import * as THREE from 'three'
 import type { MonumentShape } from '../domain/memorialProject'
+import { getSourceCatalogProfile } from '../domain/sourceCatalogProfiles'
 
-function buildProfile(width: number, height: number, shapeKind: MonumentShape): THREE.Shape {
+function buildProfile(
+  width: number,
+  height: number,
+  shapeKind: MonumentShape,
+  profileId?: string | null,
+): THREE.Shape {
+  const catalogProfile = getSourceCatalogProfile(profileId)
+  if (catalogProfile && catalogProfile.length >= 3) {
+    const shape = new THREE.Shape()
+    catalogProfile.forEach((point, index) => {
+      const x = point.x * width
+      const y = point.y * height
+      if (index === 0) shape.moveTo(x, y)
+      else shape.lineTo(x, y)
+    })
+    shape.closePath()
+    return shape
+  }
+
   const shape = new THREE.Shape()
   const half = width / 2
   shape.moveTo(-half, 0)
@@ -116,8 +135,9 @@ export function createSteleGeometry(
   height: number,
   depth: number,
   shapeKind: MonumentShape,
+  profileId?: string | null,
 ): THREE.ExtrudeGeometry {
-  const geometry = new THREE.ExtrudeGeometry(buildProfile(width, height, shapeKind), {
+  const geometry = new THREE.ExtrudeGeometry(buildProfile(width, height, shapeKind, profileId), {
     depth,
     bevelEnabled: true,
     bevelSegments: 3,
