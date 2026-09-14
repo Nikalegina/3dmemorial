@@ -202,6 +202,11 @@ export function App() {
       data-preset-id={startup.context.presetId ?? undefined}
       data-catalog-product-id={startup.context.catalogProductId ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
+      data-source-catalog-model-id={normalized.catalogSource?.modelId ?? undefined}
+      data-source-catalog-geometry={normalized.catalogSource?.geometryMode ?? undefined}
+      data-source-catalog-variant={normalized.catalogSource?.variantIndex ?? undefined}
+      data-source-profile-id={normalized.steles[0]?.monument.profileId ?? undefined}
+      data-source-stone-code={normalized.steles[0]?.monument.stoneCode ?? undefined}
       data-visible-steles={getVisibleSteles(normalized).length}
     >
       <div className="viewport">
