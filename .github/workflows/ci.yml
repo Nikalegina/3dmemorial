@@ -196,7 +196,7 @@ jobs:
           grep -q 'data-source-stone-code="K06"' browser-artifacts/family-71-dom.html
           grep -q '№ 71' browser-artifacts/family-71-dom.html
           grep -q '900 × 1200 × 70 мм' browser-artifacts/family-71-dom.html
-          grep -q '106 доступных профильных форм и 226 подтверждённых размерных вариантов' browser-artifacts/family-71-dom.html
+          grep -q '110 доступных исходных моделей и 231 подтверждённый размерный вариант' browser-artifacts/family-71-dom.html
           browser_screenshot "$FAMILY_71_URL" browser-artifacts/catalog-family-71.png
 
           ELITE_19_URL="http://127.0.0.1:4173/?profile=ermis-elite-19&variant=0&sourceSku=ELITE-19"
@@ -208,8 +208,47 @@ jobs:
           grep -q 'data-source-stone-code="K06"' browser-artifacts/elite-19-dom.html
           grep -q 'Исходная модель № 19' browser-artifacts/elite-19-dom.html
           grep -q '1500 × 700 × 150 мм' browser-artifacts/elite-19-dom.html
-          grep -q 'скульптурные модели не подменяются плоской формой' browser-artifacts/elite-19-dom.html
+          grep -q 'не подменяются плоскими формами' browser-artifacts/elite-19-dom.html
           browser_screenshot "$ELITE_19_URL" browser-artifacts/catalog-elite-19.png
+
+          ELITE_4_URL="http://127.0.0.1:4173/?profile=ermis-elite-4&variant=0&sourceSku=ELITE-4"
+          browser_dump "$ELITE_4_URL" browser-artifacts/elite-4-dom.html
+          grep -q 'data-source-profile-id="ermis-elite-4"' browser-artifacts/elite-4-dom.html
+          grep -q 'data-elite-renderer="procedural-compound"' browser-artifacts/elite-4-dom.html
+          grep -q 'data-elite-source-model="4"' browser-artifacts/elite-4-dom.html
+          grep -q 'data-source-stone-code="K06"' browser-artifacts/elite-4-dom.html
+          grep -q '1630 × 1180 × 200 мм' browser-artifacts/elite-4-dom.html
+          grep -q 'открытая архитектурная конструкция без центральной плиты' browser-artifacts/elite-4-dom.html
+          browser_screenshot "$ELITE_4_URL" browser-artifacts/catalog-elite-4.png
+
+          ELITE_22_URL="http://127.0.0.1:4173/?profile=ermis-elite-22&variant=0&sourceSku=ELITE-22"
+          browser_dump "$ELITE_22_URL" browser-artifacts/elite-22-dom.html
+          grep -q 'data-source-profile-id="ermis-elite-22"' browser-artifacts/elite-22-dom.html
+          grep -q 'data-elite-renderer="procedural-compound"' browser-artifacts/elite-22-dom.html
+          grep -q 'data-elite-source-model="22"' browser-artifacts/elite-22-dom.html
+          grep -q 'data-source-stone-code="K13"' browser-artifacts/elite-22-dom.html
+          grep -q '2000 × 1200 × 200 мм' browser-artifacts/elite-22-dom.html
+          browser_screenshot "$ELITE_22_URL" browser-artifacts/catalog-elite-22.png
+
+          ELITE_24_URL="http://127.0.0.1:4173/?profile=ermis-elite-24&variant=1&sourceSku=ELITE-24"
+          browser_dump "$ELITE_24_URL" browser-artifacts/elite-24-dom.html
+          grep -q 'data-source-profile-id="ermis-elite-24"' browser-artifacts/elite-24-dom.html
+          grep -q 'data-source-variant-index="1"' browser-artifacts/elite-24-dom.html
+          grep -q 'data-elite-renderer="procedural-compound"' browser-artifacts/elite-24-dom.html
+          grep -q 'data-elite-source-model="24"' browser-artifacts/elite-24-dom.html
+          grep -q 'data-source-stone-code="K13"' browser-artifacts/elite-24-dom.html
+          grep -q '2500 × 1200 × 250 мм' browser-artifacts/elite-24-dom.html
+          browser_screenshot "$ELITE_24_URL" browser-artifacts/catalog-elite-24.png
+
+          ELITE_25_URL="http://127.0.0.1:4173/?profile=ermis-elite-25&variant=0&sourceSku=ELITE-25"
+          browser_dump "$ELITE_25_URL" browser-artifacts/elite-25-dom.html
+          grep -q 'data-source-profile-id="ermis-elite-25"' browser-artifacts/elite-25-dom.html
+          grep -q 'data-elite-renderer="procedural-compound"' browser-artifacts/elite-25-dom.html
+          grep -q 'data-elite-source-model="25"' browser-artifacts/elite-25-dom.html
+          grep -q 'data-source-stone-code="K14"' browser-artifacts/elite-25-dom.html
+          grep -q '1200 × 1500 × 250 мм' browser-artifacts/elite-25-dom.html
+          grep -q 'Модель № 25 содержит центральную плиту для портрета и надписи' browser-artifacts/elite-25-dom.html
+          browser_screenshot "$ELITE_25_URL" browser-artifacts/catalog-elite-25.png
 
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"

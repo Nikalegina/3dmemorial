@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { resolveStartupProject } from '../domain/catalogEntry'
+import { getEliteCatalogModelByRuntimeProfileId } from '../domain/eliteCatalog'
 import {
   createDefaultProject,
   normalizeProject,
@@ -38,6 +39,7 @@ export function App() {
   const [importStatus, setImportStatus] = useState<string | null>(null)
   const [highQualityRender, setHighQualityRender] = useState(false)
   const normalized = useMemo(() => normalizeProject(project), [project])
+  const primaryEliteRuntime = getEliteCatalogModelByRuntimeProfileId(normalized.steles[0]?.monument.shape ?? '')
 
   useEffect(() => {
     portraitUrlsRef.current = portraitUrls
@@ -205,6 +207,8 @@ export function App() {
       data-source-variant-index={startup.context.sourceVariantIndex ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
       data-visible-steles={getVisibleSteles(normalized).length}
+      data-elite-renderer={primaryEliteRuntime?.strategy ?? undefined}
+      data-elite-source-model={primaryEliteRuntime?.sourceModel ?? undefined}
     >
       <div className="viewport">
         <MemorialCanvas
