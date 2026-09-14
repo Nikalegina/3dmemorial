@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createDefaultProject, withLayout } from '../src/domain/memorialProject.ts'
+import { createProjectFromSourceCatalogModel } from '../src/domain/sourceCatalog.ts'
 import {
   createQuoteRequestEnvelope,
   HOST_BRIDGE_CHANNEL,
@@ -36,6 +37,21 @@ test('quote handoff contains configuration and source attribution but no portrai
   const serialized = JSON.stringify(envelope)
   assert.equal(serialized.includes('blob:'), false)
   assert.equal(serialized.includes('data:image/'), false)
+})
+
+test('quote handoff preserves exact source catalog model provenance', () => {
+  const project = createProjectFromSourceCatalogModel('ERMIS-SINGLE-20')
+  const envelope = createQuoteRequestEnvelope(
+    project,
+    'https://example.test/constructor?sourceSku=ERMIS-SINGLE-20',
+    'catalog',
+    { presetId: null, catalogProductId: null, sourceSku: 'ERMIS-SINGLE-20' },
+  )
+
+  assert.equal(envelope.source.projectCatalogModelId, 'ERMIS-SINGLE-20')
+  assert.equal(envelope.project.catalogSource?.modelId, 'ERMIS-SINGLE-20')
+  assert.equal(envelope.project.steles[0].monument.profileId, 'ermis-single-20')
+  assert.equal(envelope.project.steles[0].monument.stoneCode, 'К06')
 })
 
 test('parent origin accepts only absolute HTTP(S) referrers', () => {
