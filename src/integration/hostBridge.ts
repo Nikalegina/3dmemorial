@@ -18,6 +18,7 @@ export interface QuoteRequestEnvelope {
     catalogProductId: CatalogEntryContext['catalogProductId']
     sourceProfileId: CatalogEntryContext['sourceProfileId']
     sourceVariantIndex: CatalogEntryContext['sourceVariantIndex']
+    sourceComponentId: CatalogEntryContext['sourceComponentId']
     sourceSku: CatalogEntryContext['sourceSku']
   }
   privacy: {
@@ -62,6 +63,7 @@ export function createQuoteRequestEnvelope(
       catalogProductId: context.catalogProductId,
       sourceProfileId: context.sourceProfileId,
       sourceVariantIndex: context.sourceVariantIndex,
+      sourceComponentId: context.sourceComponentId,
       sourceSku: context.sourceSku,
     },
     privacy: {
