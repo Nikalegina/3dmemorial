@@ -158,6 +158,26 @@ jobs:
           grep -q 'data-visible-steles="2"' browser-artifacts/catalog-combined-dom.html
           browser_screenshot "$CATALOG_COMBINED_URL" browser-artifacts/catalog-granite-glass.png
 
+          SOURCE_105_URL="http://127.0.0.1:4173/?profile=ermis-105&variant=0&sourceSku=CAT-105"
+          browser_dump "$SOURCE_105_URL" browser-artifacts/source-105-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/source-105-dom.html
+          grep -q 'data-source-profile-id="ermis-105"' browser-artifacts/source-105-dom.html
+          grep -q 'data-source-variant-index="0"' browser-artifacts/source-105-dom.html
+          grep -q 'data-source-sku="CAT-105"' browser-artifacts/source-105-dom.html
+          grep -q 'Каталог № 105' browser-artifacts/source-105-dom.html
+          grep -q '900 × 400 × 70 мм' browser-artifacts/source-105-dom.html
+          browser_screenshot "$SOURCE_105_URL" browser-artifacts/catalog-profile-105.png
+
+          SOURCE_114_URL="http://127.0.0.1:4173/?profile=ermis-114&variant=0&sourceSku=CAT-114"
+          browser_dump "$SOURCE_114_URL" browser-artifacts/source-114-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/source-114-dom.html
+          grep -q 'data-source-profile-id="ermis-114"' browser-artifacts/source-114-dom.html
+          grep -q 'data-source-variant-index="0"' browser-artifacts/source-114-dom.html
+          grep -q 'data-source-sku="CAT-114"' browser-artifacts/source-114-dom.html
+          grep -q 'Каталог № 114' browser-artifacts/source-114-dom.html
+          grep -q '1000 × 500 × 50 мм' browser-artifacts/source-114-dom.html
+          browser_screenshot "$SOURCE_114_URL" browser-artifacts/catalog-profile-114.png
+
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
           grep -q 'data-webgl-ready="true"' browser-artifacts/mobile-dom.html
