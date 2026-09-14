@@ -122,6 +122,7 @@ test('invalid profile, catalog product, preset and unsafe SKU fail closed and do
     catalogProductId: null,
     sourceProfileId: null,
     sourceVariantIndex: null,
+    sourceComponentId: null,
     sourceSku: null,
   })
 })
@@ -148,6 +149,53 @@ test('catalog parser tolerates malformed URLs by returning empty context', () =>
     catalogProductId: null,
     sourceProfileId: null,
     sourceVariantIndex: null,
+    sourceComponentId: null,
     sourceSku: null,
   })
+})
+
+test('source component deep-link opens managed TSK50 furniture and derives source SKU', () => {
+  const result = resolveStartupProject(
+    'https://example.test/constructor?component=ermis-tsk50',
+    null,
+  )
+  assert.equal(result.source, 'catalog')
+  assert.equal(result.context.sourceComponentId, 'ermis-tsk50')
+  assert.equal(result.context.sourceSku, 'TSK50')
+  assert.equal(result.project.bench.enabled, true)
+  assert.equal(result.project.bench.styleId, 'ermis-tsk50-bench')
+  assert.equal(result.project.table.enabled, true)
+  assert.equal(result.project.table.styleId, 'ermis-tsk50-table')
+})
+
+test('source component deep-link keeps null SKU when source catalog has no SKU', () => {
+  const result = resolveStartupProject(
+    'https://example.test/constructor?component=ermis-paving-600x300',
+    null,
+  )
+  assert.equal(result.context.sourceComponentId, 'ermis-paving-600x300')
+  assert.equal(result.context.sourceSku, null)
+  assert.equal(result.project.paving.styleId, 'ermis-paving-600x300')
+})
+
+test('source monument profile keeps priority over source component deep-link', () => {
+  const result = resolveStartupProject(
+    'https://example.test/constructor?profile=ermis-105&variant=0&component=ermis-fence-f03',
+    null,
+  )
+  assert.equal(result.context.sourceProfileId, 'ermis-105')
+  assert.equal(result.context.sourceComponentId, 'ermis-fence-f03')
+  assert.equal(result.project.steles[0].monument.shape, 'ermis-105')
+  assert.equal(result.project.fence.styleId, 'classic-black')
+})
+
+test('source component has priority over generic catalog recipe and preset', () => {
+  const result = resolveStartupProject(
+    'https://example.test/constructor?component=ermis-fence-f03&catalog=catalog-glass-complete&preset=modern-glass',
+    null,
+  )
+  assert.equal(result.context.sourceComponentId, 'ermis-fence-f03')
+  assert.equal(result.context.sourceSku, 'F-03')
+  assert.equal(result.project.fence.styleId, 'ermis-fence-f03')
+  assert.equal(result.project.steles[0].monument.material, 'gabbro')
 })
