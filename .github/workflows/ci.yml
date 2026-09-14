@@ -61,11 +61,12 @@ jobs:
           browser_dump() {
             local url="$1"
             local output="$2"
+            local window_size="${3:-1440,1100}"
             local attempt
             for attempt in 1 2 3; do
               local profile
               profile="$(mktemp -d)"
-              if timeout 40s "$CHROME"                 --headless=new                 --no-sandbox                 --disable-dev-shm-usage                 --disable-background-networking                 --disable-component-update                 --disable-sync                 --enable-unsafe-swiftshader                 --use-angle=swiftshader                 --window-size=1440,1100                 --virtual-time-budget=8000                 --user-data-dir="$profile"                 --dump-dom                 "$url" > "$output"; then
+              if timeout 40s "$CHROME"                 --headless=new                 --no-sandbox                 --disable-dev-shm-usage                 --disable-background-networking                 --disable-component-update                 --disable-sync                 --enable-unsafe-swiftshader                 --use-angle=swiftshader                 --window-size="$window_size"                 --virtual-time-budget=8000                 --user-data-dir="$profile"                 --dump-dom                 "$url" > "$output"; then
                 rm -rf "$profile"
                 if grep -q 'data-webgl-ready="true"' "$output"; then
                   return 0
@@ -83,11 +84,12 @@ jobs:
           browser_screenshot() {
             local url="$1"
             local output="$2"
+            local window_size="${3:-1440,1100}"
             local attempt
             for attempt in 1 2 3; do
               local profile
               profile="$(mktemp -d)"
-              if timeout 40s "$CHROME"                 --headless=new                 --no-sandbox                 --disable-dev-shm-usage                 --disable-background-networking                 --disable-component-update                 --disable-sync                 --enable-unsafe-swiftshader                 --use-angle=swiftshader                 --window-size=1440,1100                 --virtual-time-budget=8000                 --user-data-dir="$profile"                 --screenshot="$output"                 "$url"; then
+              if timeout 40s "$CHROME"                 --headless=new                 --no-sandbox                 --disable-dev-shm-usage                 --disable-background-networking                 --disable-component-update                 --disable-sync                 --enable-unsafe-swiftshader                 --use-angle=swiftshader                 --window-size="$window_size"                 --virtual-time-budget=8000                 --user-data-dir="$profile"                 --screenshot="$output"                 "$url"; then
                 rm -rf "$profile"
                 if [ -s "$output" ]; then
                   return 0
@@ -134,6 +136,14 @@ jobs:
           grep -q 'data-visible-steles="3"' browser-artifacts/family-dom.html
           grep -q 'Семейный' browser-artifacts/family-dom.html
           browser_screenshot "$FAMILY_URL" browser-artifacts/family-classic.png
+
+          MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
+          browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
+          grep -q 'data-webgl-ready="true"' browser-artifacts/mobile-dom.html
+          grep -q 'data-preset-id="modern-glass"' browser-artifacts/mobile-dom.html
+          grep -q 'Быстрый расчёт проекта' browser-artifacts/mobile-dom.html
+          grep -q '>Рассчитать<' browser-artifacts/mobile-dom.html
+          browser_screenshot "$MOBILE_URL" browser-artifacts/mobile-390x844.png "390,844"
 
       - name: Upload browser smoke artifacts
         if: always()
