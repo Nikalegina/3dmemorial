@@ -230,12 +230,17 @@ function SourceVase({ project, side }: { project: MemorialProject; side: 'left' 
 
   if (style.kind === 'sphere') {
     const baseDepth = 'baseDepthM' in style ? style.baseDepthM : diameter
-    const sphereRadius = diameter * 0.42
-    const baseHeight = Math.max(0.035, h - sphereRadius * 2)
+    const sphereRadius = diameter / 2
+    const depthRadius = baseDepth / 2
+    const depthScale = depthRadius / sphereRadius
+    const baseHeight = Math.max(0.02, h - diameter)
     return (
       <group position={[x, 0.13, z]} data-source-component={style.sourceComponentId}>
-        <StoneCylinder radius={Math.max(0.035, baseDepth / 2)} height={baseHeight} position={[0, baseHeight / 2, 0]} />
-        <mesh position={[0, baseHeight + sphereRadius, 0]} castShadow receiveShadow>
+        <mesh position={[0, baseHeight / 2, 0]} scale={[1, 1, depthScale]} castShadow receiveShadow>
+          <cylinderGeometry args={[sphereRadius, sphereRadius, baseHeight, 32]} />
+          <PolishedBlackStone />
+        </mesh>
+        <mesh position={[0, baseHeight + sphereRadius, 0]} scale={[1, 1, depthScale]} castShadow receiveShadow>
           <sphereGeometry args={[sphereRadius, 32, 20]} />
           <PolishedBlackStone />
         </mesh>
@@ -246,8 +251,12 @@ function SourceVase({ project, side }: { project: MemorialProject; side: 'left' 
   if (style.kind === 'lampada') {
     const bodyRadius = radius * 0.82
     const baseH = h * 0.16
-    const capH = h * 0.18
-    const pillarH = h - baseH - capH
+    const capVisualHeight = h * 0.16
+    const crossHeight = h * 0.1
+    const pillarH = h - baseH - capVisualHeight - crossHeight
+    const capCenterY = baseH + pillarH + capVisualHeight / 2
+    const capScaleY = capVisualHeight / (radius * 2)
+    const crossBaseY = h - crossHeight
     return (
       <group position={[x, 0.13, z]} data-source-component={style.sourceComponentId}>
         <StoneCylinder radius={radius} height={baseH} position={[0, baseH / 2, 0]} />
@@ -258,14 +267,22 @@ function SourceVase({ project, side }: { project: MemorialProject; side: 'left' 
             position={[sx * bodyRadius * 0.58, baseH + pillarH / 2, sz * bodyRadius * 0.58]}
           />
         )))}
-        <mesh position={[0, baseH + pillarH * 0.48, 0]}>
-          <cylinderGeometry args={[bodyRadius * 0.28, bodyRadius * 0.28, pillarH * 0.5, 24]} />
+        <mesh position={[0, baseH + pillarH * 0.5, 0]}>
+          <cylinderGeometry args={[bodyRadius * 0.28, bodyRadius * 0.28, pillarH * 0.58, 24]} />
           <meshStandardMaterial color="#b97838" emissive="#8b3f13" emissiveIntensity={0.7} />
         </mesh>
-        <mesh position={[0, h - capH * 0.42, 0]} castShadow receiveShadow>
-          <sphereGeometry args={[radius, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <mesh position={[0, capCenterY, 0]} scale={[1, capScaleY, 1]} castShadow receiveShadow>
+          <sphereGeometry args={[radius, 32, 20]} />
           <PolishedBlackStone />
         </mesh>
+        <StoneBox
+          size={[radius * 0.1, crossHeight, radius * 0.1]}
+          position={[0, crossBaseY + crossHeight / 2, 0]}
+        />
+        <StoneBox
+          size={[radius * 0.48, radius * 0.09, radius * 0.1]}
+          position={[0, crossBaseY + crossHeight * 0.68, 0]}
+        />
       </group>
     )
   }
@@ -303,7 +320,7 @@ function SourceVase({ project, side }: { project: MemorialProject; side: 'left' 
 
 function FenceFinial({ x, z, postHeight }: { x: number; z: number; postHeight: number }) {
   const baseH = 0.04
-  const sphereRadius = 0.045
+  const sphereRadius = 0.05
   return (
     <group>
       <StoneBox size={[0.11, baseH, 0.11]} position={[x, postHeight + baseH / 2, z]} />
@@ -322,13 +339,13 @@ function WingGeometry({ variant }: { variant: 'f01' | 'f02' }) {
     const depth = 0.07
     const shape = new THREE.Shape()
     shape.moveTo(-width / 2, 0)
-    shape.lineTo(-width / 2, variant === 'f01' ? height * 0.72 : height * 0.68)
+    shape.lineTo(-width / 2, height)
 
     if (variant === 'f01') {
-      shape.bezierCurveTo(-width * 0.32, height * 0.78, -width * 0.14, height * 0.78, 0, height * 0.72)
+      shape.bezierCurveTo(-width * 0.32, height, -width * 0.14, height * 0.88, 0, height * 0.76)
       shape.bezierCurveTo(width * 0.14, height * 0.64, width * 0.28, height * 0.5, width / 2, height * 0.46)
     } else {
-      shape.bezierCurveTo(-width * 0.34, height * 0.76, -width * 0.18, height * 0.75, 0, height * 0.68)
+      shape.bezierCurveTo(-width * 0.34, height, -width * 0.18, height * 0.88, 0, height * 0.72)
       shape.bezierCurveTo(width * 0.18, height * 0.6, width * 0.34, height * 0.48, width / 2, height * 0.44)
     }
 
