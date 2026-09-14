@@ -17,6 +17,7 @@ export interface QuoteRequestEnvelope {
     presetId: CatalogEntryContext['presetId']
     catalogProductId: CatalogEntryContext['catalogProductId']
     sourceSku: CatalogEntryContext['sourceSku']
+    projectCatalogModelId: string | null
   }
   privacy: {
     includesPortraitBinary: false
@@ -59,6 +60,7 @@ export function createQuoteRequestEnvelope(
       presetId: context.presetId,
       catalogProductId: context.catalogProductId,
       sourceSku: context.sourceSku,
+      projectCatalogModelId: project.catalogSource?.modelId ?? null,
     },
     privacy: {
       includesPortraitBinary: false,
