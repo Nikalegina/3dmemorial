@@ -1,6 +1,7 @@
 import { createDefaultProject, normalizeProject, type MemorialProject } from './memorialProject.ts'
 import { SOURCE_CATALOG_RAW_PART_1 } from './sourceCatalogProfiles.part1.ts'
 import { SOURCE_CATALOG_RAW_PART_2 } from './sourceCatalogProfiles.part2.ts'
+import { getSourceStoneMaterial, resolveSourceStoneCodes } from './sourceStoneMaterials.ts'
 import type {
   SourceCatalogProfile,
   SourceCatalogProfileId,
@@ -59,7 +60,11 @@ export function createSourceCatalogProject(
   project.projectId = `CATALOG-${id.toUpperCase()}-V${variantIndex + 1}`
   project.steles[0].monument.shape = id
   project.steles[0].monument.material = 'gabbro'
-  project.steles[0].monument.surfaceId = 'gabbro-polished'
+  const sourceStoneCode = resolveSourceStoneCodes(variant.materialCodes)[0]
+  project.steles[0].monument.sourceStoneCode = sourceStoneCode
+  project.steles[0].monument.surfaceId = sourceStoneCode
+    ? getSourceStoneMaterial(sourceStoneCode).renderSurfaceId
+    : 'gabbro-polished'
   project.steles[0].monument.heightM = variant.heightMm / 1000
   project.steles[0].monument.widthM = variant.widthMm / 1000
   project.steles[0].monument.depthM = variant.depthMm / 1000
