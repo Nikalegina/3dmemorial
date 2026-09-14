@@ -1,19 +1,55 @@
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
-import type { MemorialStele } from '../domain/memorialProject'
+import type { MemorialStele, PortraitFrameId } from '../domain/memorialProject'
+
+function framePath(context: CanvasRenderingContext2D, side: number, frame: PortraitFrameId) {
+  const left = side * 0.1
+  const top = side * 0.06
+  const width = side * 0.8
+  const height = side * 0.88
+
+  context.beginPath()
+  if (frame === 'oval') {
+    context.ellipse(side / 2, side / 2, width / 2, height / 2, 0, 0, Math.PI * 2)
+    return
+  }
+
+  if (frame === 'rounded-rect') {
+    const radius = side * 0.08
+    context.moveTo(left + radius, top)
+    context.lineTo(left + width - radius, top)
+    context.quadraticCurveTo(left + width, top, left + width, top + radius)
+    context.lineTo(left + width, top + height - radius)
+    context.quadraticCurveTo(left + width, top + height, left + width - radius, top + height)
+    context.lineTo(left + radius, top + height)
+    context.quadraticCurveTo(left, top + height, left, top + height - radius)
+    context.lineTo(left, top + radius)
+    context.quadraticCurveTo(left, top, left + radius, top)
+    context.closePath()
+    return
+  }
+
+  context.rect(left, top, width, height)
+}
+
+function drawFrameStroke(context: CanvasRenderingContext2D, side: number, stele: MemorialStele) {
+  const isGlass = stele.monument.material === 'glass'
+  framePath(context, side, stele.portrait.frame)
+  context.strokeStyle = isGlass ? 'rgba(30,38,39,.72)' : 'rgba(236,235,230,.68)'
+  context.lineWidth = side * 0.012
+  context.stroke()
+}
 
 function drawPlaceholder(context: CanvasRenderingContext2D, side: number, stele: MemorialStele) {
   const isGlass = stele.monument.material === 'glass'
   const ink = isGlass ? '#23292a' : '#e6e6e2'
   context.clearRect(0, 0, side, side)
-  context.strokeStyle = ink
-  context.fillStyle = ink
-  context.globalAlpha = isGlass ? 0.48 : 0.56
-  context.lineWidth = side * 0.014
 
-  context.beginPath()
-  context.ellipse(side / 2, side * 0.48, side * 0.34, side * 0.43, 0, 0, Math.PI * 2)
-  context.stroke()
+  context.save()
+  framePath(context, side, stele.portrait.frame)
+  context.clip()
+  context.fillStyle = ink
+  context.globalAlpha = isGlass ? 0.42 : 0.52
 
   context.beginPath()
   context.arc(side / 2, side * 0.39, side * 0.105, 0, Math.PI * 2)
@@ -28,12 +64,15 @@ function drawPlaceholder(context: CanvasRenderingContext2D, side: number, stele:
   context.textAlign = 'center'
   context.textBaseline = 'middle'
   context.fillText('ФОТО', side / 2, side * 0.86)
+  context.restore()
+
   context.globalAlpha = 1
+  drawFrameStroke(context, side, stele)
 }
 
 function usePortraitTexture(url: string | null, stele: MemorialStele) {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null)
-  const { mode, offsetX, offsetY, zoom } = stele.portrait
+  const { mode, offsetX, offsetY, zoom, frame } = stele.portrait
 
   useEffect(() => {
     let cancelled = false
@@ -68,6 +107,11 @@ function usePortraitTexture(url: string | null, stele: MemorialStele) {
     image.onload = () => {
       if (cancelled) return
 
+      context.clearRect(0, 0, side, side)
+      context.save()
+      framePath(context, side, frame)
+      context.clip()
+
       const coverScale = Math.max(side / image.width, side / image.height)
       const scale = coverScale * zoom
       const width = image.width * scale
@@ -80,6 +124,9 @@ function usePortraitTexture(url: string | null, stele: MemorialStele) {
           ? 'grayscale(1) contrast(1.7) brightness(1.12)'
           : 'none'
       context.drawImage(image, x, y, width, height)
+      context.restore()
+
+      drawFrameStroke(context, side, stele)
       publish()
     }
     image.src = url
@@ -87,7 +134,7 @@ function usePortraitTexture(url: string | null, stele: MemorialStele) {
     return () => {
       cancelled = true
     }
-  }, [mode, offsetX, offsetY, stele, url, zoom])
+  }, [frame, mode, offsetX, offsetY, stele, url, zoom])
 
   useEffect(() => () => texture?.dispose(), [texture])
   return texture

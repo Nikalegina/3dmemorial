@@ -10,7 +10,7 @@ import {
 
 test('default project has canonical schema version and one stele', () => {
   const project = createDefaultProject()
-  assert.equal(project.schemaVersion, 4)
+  assert.equal(project.schemaVersion, 5)
   assert.equal(project.layout.type, 'single')
   assert.equal(project.steles.length, 1)
   assert.equal(project.steles[0].monument.material, 'gabbro')
@@ -35,7 +35,7 @@ test('normalization clamps unsafe stele dimensions and portrait transforms', () 
   assert.equal(normalized.layout.gapM, 0.8)
 })
 
-test('project serialization round-trips schema v4 paired composition', () => {
+test('project serialization round-trips schema v5 paired composition', () => {
   const source = withLayout(createDefaultProject(), 'paired')
   source.steles[0].monument.material = 'hybrid'
   source.steles[0].inscription.name = 'ПЕРВЫЙ'
@@ -46,6 +46,40 @@ test('project serialization round-trips schema v4 paired composition', () => {
   source.border.enabled = true
   const parsed = parseProject(serializeProject(source))
   assert.deepEqual(parsed, source)
+})
+
+test('schema v4 migrates personalization defaults without losing paired data', () => {
+  const current = withLayout(createDefaultProject(), 'paired')
+  const legacy = {
+    ...JSON.parse(JSON.stringify(current)),
+    schemaVersion: 4,
+    steles: current.steles.map((stele) => ({
+      id: stele.id,
+      monument: stele.monument,
+      portrait: {
+        mode: stele.portrait.mode,
+        enabled: stele.portrait.enabled,
+        offsetX: stele.portrait.offsetX,
+        offsetY: stele.portrait.offsetY,
+        zoom: stele.portrait.zoom,
+      },
+      inscription: {
+        enabled: stele.inscription.enabled,
+        name: stele.inscription.name,
+        dates: stele.inscription.dates,
+        epitaph: stele.inscription.epitaph,
+      },
+    })),
+  }
+
+  legacy.steles[1].inscription.name = 'ВТОРОЙ'
+  const migrated = parseProject(JSON.stringify(legacy))
+  assert.equal(migrated.schemaVersion, 5)
+  assert.equal(migrated.layout.type, 'paired')
+  assert.equal(migrated.steles[1].inscription.name, 'ВТОРОЙ')
+  assert.equal(migrated.steles[0].portrait.frame, 'oval')
+  assert.equal(migrated.steles[0].inscription.fontId, 'classic')
+  assert.equal(migrated.steles[0].inscription.symbolId, 'none')
 })
 
 test('schema v3 migrates monument portrait and inscription into primary stele', () => {
@@ -66,7 +100,7 @@ test('schema v3 migrates monument portrait and inscription into primary stele', 
     vase: { enabled: true, styleId: 'classic-vase', placement: 'pair' },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 4)
+  assert.equal(migrated.schemaVersion, 5)
   assert.equal(migrated.layout.type, 'single')
   assert.equal(migrated.steles.length, 1)
   assert.equal(migrated.steles[0].monument.shape, 'book')
@@ -88,7 +122,7 @@ test('schema v1 migrates to current project model', () => {
     fence: { enabled: false }, bench: { enabled: false }, table: { enabled: false }, vase: { enabled: false },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 4)
+  assert.equal(migrated.schemaVersion, 5)
   assert.equal(migrated.steles[0].monument.surfaceId, 'glass-clear')
   assert.equal(migrated.steles[0].portrait.zoom, 1)
   assert.equal(migrated.steles[0].inscription.enabled, true)
@@ -108,7 +142,7 @@ test('schema v2 migrates managed complex components without losing enabled state
     fence: { enabled: true }, bench: { enabled: true }, table: { enabled: false }, vase: { enabled: true },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 4)
+  assert.equal(migrated.schemaVersion, 5)
   assert.equal(migrated.fence.enabled, true)
   assert.equal(migrated.fence.styleId, 'classic-black')
   assert.equal(migrated.bench.side, 'right')
@@ -135,4 +169,17 @@ test('unsupported schema is rejected', () => {
   const source = createDefaultProject() as unknown as Record<string, unknown>
   source.schemaVersion = 999
   assert.throws(() => parseProject(JSON.stringify(source)), /Unsupported project schema/)
+})
+
+
+test('invalid personalization ids normalize to safe defaults', () => {
+  const project = createDefaultProject()
+  ;(project.steles[0].portrait as unknown as { frame: string }).frame = 'invalid-frame'
+  ;(project.steles[0].inscription as unknown as { fontId: string }).fontId = 'invalid-font'
+  ;(project.steles[0].inscription as unknown as { symbolId: string }).symbolId = 'invalid-symbol'
+
+  const normalized = normalizeProject(project)
+  assert.equal(normalized.steles[0].portrait.frame, 'oval')
+  assert.equal(normalized.steles[0].inscription.fontId, 'classic')
+  assert.equal(normalized.steles[0].inscription.symbolId, 'none')
 })

@@ -10,6 +10,7 @@ import {
 import { createSteleGeometry } from './geometry'
 import { InscriptionPlane } from './InscriptionPlane'
 import { PortraitPlane } from './PortraitPlane'
+import { MemorialSymbolPlane } from './MemorialSymbolPlane'
 import { SteleSurfaceMaterial } from './SteleSurfaceMaterial'
 
 function SteleMonument({
@@ -74,6 +75,7 @@ function SteleMonument({
         </mesh>
       )}
 
+      <MemorialSymbolPlane stele={stele} z={faceZ + 0.0025} />
       {stele.portrait.enabled && (
         <PortraitPlane url={portraitUrl} stele={stele} z={faceZ} />
       )}
