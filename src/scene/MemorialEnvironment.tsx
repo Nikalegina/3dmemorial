@@ -3,17 +3,20 @@ import {
   BENCH_STYLES,
   BORDER_STYLES,
   FENCE_STYLES,
+  FLOWER_BED_STYLES,
   PAVING_STYLES,
   TABLE_STYLES,
   VASE_STYLES,
 } from '../domain/componentCatalog'
 import { getCompositionWidth, type MemorialProject } from '../domain/memorialProject'
+import { SourceCatalogEnvironmentComponents } from './SourceCatalogEnvironmentComponents'
 
 function Fence({ project }: { project: MemorialProject }) {
   if (!project.fence.enabled) return null
   const w = project.plot.widthM
   const d = project.plot.depthM
   const style = FENCE_STYLES.find((item) => item.id === project.fence.styleId) ?? FENCE_STYLES[0]
+  if (style.kind !== 'metal') return null
   const h = style.heightM
   const railY = h * 0.62
   const gateWidth = Math.min(0.72, w * 0.38)
@@ -90,6 +93,7 @@ function PavingSurface({ project }: { project: MemorialProject }) {
   const w = project.plot.widthM
   const d = project.plot.depthM
   const paving = PAVING_STYLES.find((item) => item.id === project.paving.styleId) ?? PAVING_STYLES[0]
+  if ('sourceComponentId' in paving) return null
   const showJoints = paving.id !== 'gravel-light'
   const columns = paving.id === 'granite-dark' ? 2 : 4
   const rows = paving.id === 'granite-dark' ? 3 : 6
@@ -127,6 +131,7 @@ function PavingSurface({ project }: { project: MemorialProject }) {
 
 function Vase({ project, side }: { project: MemorialProject; side: 'left' | 'right' }) {
   const style = VASE_STYLES.find((item) => item.id === project.vase.styleId) ?? VASE_STYLES[0]
+  if ('sourceComponentId' in style) return null
   const compositionWidth = getCompositionWidth(project)
   const x = (side === 'left' ? -1 : 1) * Math.max(0.34, compositionWidth * 0.58)
   const h = style.heightM
@@ -159,6 +164,9 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
   const d = project.plot.depthM
   const bench = BENCH_STYLES.find((item) => item.id === project.bench.styleId) ?? BENCH_STYLES[0]
   const table = TABLE_STYLES.find((item) => item.id === project.table.styleId) ?? TABLE_STYLES[0]
+  const flowerBedStyle = FLOWER_BED_STYLES.find((item) => item.id === project.flowerBed.styleId) ?? FLOWER_BED_STYLES[0]
+  const benchIsSource = 'sourceComponentId' in bench
+  const tableIsSource = 'sourceComponentId' in table
   const benchSide = project.bench.side === 'left' ? -1 : 1
   const tableSide = project.table.side === 'left' ? -1 : 1
   const plinthColor = project.plinth.materialId === 'grey-granite' ? '#646566' : '#252729'
@@ -188,7 +196,7 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
         </mesh>
       )}
 
-      {project.flowerBed.enabled && (
+      {project.flowerBed.enabled && flowerBedStyle.kind !== 'grave-slab' && (
         <group position={[0, 0.14, d * 0.18]}>
           <mesh position={[0, 0.06, -0.36]}><boxGeometry args={[flowerBedWidth, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
           <mesh position={[-flowerSideX, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
@@ -226,7 +234,7 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
       {project.vase.enabled && (project.vase.placement === 'left' || project.vase.placement === 'pair') && <Vase project={project} side="left" />}
       {project.vase.enabled && (project.vase.placement === 'right' || project.vase.placement === 'pair') && <Vase project={project} side="right" />}
 
-      {project.bench.enabled && (
+      {project.bench.enabled && !benchIsSource && (
         <group position={[benchSide * w * 0.34, 0, d * 0.25]} rotation={[0, benchSide * -0.18, 0]}>
           <mesh position={[0, 0.34, 0]} castShadow><boxGeometry args={[0.62, 0.08, 0.24]} /><meshStandardMaterial color={bench.seatColor} roughness={bench.id === 'granite-bench' ? 0.3 : 0.7} /></mesh>
           <mesh position={[-0.24, 0.16, 0]}><boxGeometry args={[0.05, 0.32, 0.05]} /><meshStandardMaterial color="#252525" metalness={bench.id === 'granite-bench' ? 0.05 : 0.6} /></mesh>
@@ -234,7 +242,7 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
         </group>
       )}
 
-      {project.table.enabled && (
+      {project.table.enabled && !tableIsSource && (
         <group position={[tableSide * w * 0.32, 0, d * 0.27]}>
           {table.shape === 'round' ? (
             <mesh position={[0, 0.46, 0]} castShadow><cylinderGeometry args={[0.25, 0.25, 0.05, 32]} /><meshStandardMaterial color="#202224" /></mesh>
@@ -245,6 +253,7 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
         </group>
       )}
 
+      <SourceCatalogEnvironmentComponents project={project} />
       <Fence project={project} />
     </group>
   )

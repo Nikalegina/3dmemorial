@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { resolveStartupProject } from '../domain/catalogEntry'
 import { getEliteCatalogModelByRuntimeProfileId } from '../domain/eliteCatalog'
+import { getSourceComponentProduct } from '../domain/sourceComponentCatalog'
 import {
   createDefaultProject,
   normalizeProject,
@@ -40,6 +41,9 @@ export function App() {
   const [highQualityRender, setHighQualityRender] = useState(false)
   const normalized = useMemo(() => normalizeProject(project), [project])
   const primaryEliteRuntime = getEliteCatalogModelByRuntimeProfileId(normalized.steles[0]?.monument.shape ?? '')
+  const startupSourceComponent = startup.context.sourceComponentId
+    ? getSourceComponentProduct(startup.context.sourceComponentId)
+    : null
 
   useEffect(() => {
     portraitUrlsRef.current = portraitUrls
@@ -205,6 +209,9 @@ export function App() {
       data-catalog-product-id={startup.context.catalogProductId ?? undefined}
       data-source-profile-id={startup.context.sourceProfileId ?? undefined}
       data-source-variant-index={startup.context.sourceVariantIndex ?? undefined}
+      data-source-component-id={startup.context.sourceComponentId ?? undefined}
+      data-source-component-page={startupSourceComponent?.sourcePage ?? undefined}
+      data-source-component-category={startupSourceComponent?.category ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
       data-visible-steles={getVisibleSteles(normalized).length}
       data-elite-renderer={primaryEliteRuntime?.strategy ?? undefined}

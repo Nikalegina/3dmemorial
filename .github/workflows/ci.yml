@@ -250,6 +250,97 @@ jobs:
           grep -q 'Модель № 25 содержит центральную плиту для портрета и надписи' browser-artifacts/elite-25-dom.html
           browser_screenshot "$ELITE_25_URL" browser-artifacts/catalog-elite-25.png
 
+          SOURCE_TSK50_URL="http://127.0.0.1:4173/?component=ermis-tsk50"
+          browser_dump "$SOURCE_TSK50_URL" browser-artifacts/source-tsk50-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/source-tsk50-dom.html
+          grep -q 'data-source-component-id="ermis-tsk50"' browser-artifacts/source-tsk50-dom.html
+          grep -q 'data-source-component-page="27"' browser-artifacts/source-tsk50-dom.html
+          grep -q 'data-source-component-category="furniture-set"' browser-artifacts/source-tsk50-dom.html
+          grep -q 'data-source-sku="TSK50"' browser-artifacts/source-tsk50-dom.html
+          grep -q 'data-selected-source-component="ermis-tsk50"' browser-artifacts/source-tsk50-dom.html
+          grep -q 'Столешница: 500 × 500 × 30 мм · K06' browser-artifacts/source-tsk50-dom.html
+          grep -q 'Опора скамьи: 420 × 140 × 140 мм · K06' browser-artifacts/source-tsk50-dom.html
+          browser_screenshot "$SOURCE_TSK50_URL" browser-artifacts/source-tsk50.png
+
+          SOURCE_TSR50_URL="http://127.0.0.1:4173/?component=ermis-tsr50"
+          browser_dump "$SOURCE_TSR50_URL" browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-component-id="ermis-tsr50"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-component-page="27"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-component-category="furniture-set"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-source-sku="TSR50"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'data-selected-source-component="ermis-tsr50"' browser-artifacts/source-tsr50-dom.html
+          grep -q 'Столешница: 500 × 500 × 30 мм · K06' browser-artifacts/source-tsr50-dom.html
+          browser_screenshot "$SOURCE_TSR50_URL" browser-artifacts/source-tsr50.png
+
+          SOURCE_SLAB_URL="http://127.0.0.1:4173/?component=ermis-grave-slab-1200x600"
+          browser_dump "$SOURCE_SLAB_URL" browser-artifacts/source-slab-dom.html
+          grep -q 'data-source-component-id="ermis-grave-slab-1200x600"' browser-artifacts/source-slab-dom.html
+          grep -q 'data-source-component-page="28"' browser-artifacts/source-slab-dom.html
+          grep -q 'data-source-component-category="grave-slab"' browser-artifacts/source-slab-dom.html
+          grep -q 'data-selected-source-component="ermis-grave-slab-1200x600"' browser-artifacts/source-slab-dom.html
+          grep -q 'Надгробная плита: 1200 × 600 мм · K06, K13, K05, K10, K11, K14' browser-artifacts/source-slab-dom.html
+          grep -q 'каталог задаёт длину и ширину, но не толщину' browser-artifacts/source-slab-dom.html
+          browser_screenshot "$SOURCE_SLAB_URL" browser-artifacts/source-grave-slab-1200x600.png
+
+          SOURCE_PAVING_URL="http://127.0.0.1:4173/?component=ermis-paving-600x300"
+          browser_dump "$SOURCE_PAVING_URL" browser-artifacts/source-paving-dom.html
+          grep -q 'data-source-component-id="ermis-paving-600x300"' browser-artifacts/source-paving-dom.html
+          grep -q 'data-source-component-page="28"' browser-artifacts/source-paving-dom.html
+          grep -q 'data-source-component-category="paving"' browser-artifacts/source-paving-dom.html
+          grep -q 'data-selected-source-component="ermis-paving-600x300"' browser-artifacts/source-paving-dom.html
+          grep -q 'Плитка: 600 × 300 мм · K06, K13, K02, K05, K03, K04, K14, K12, KW, KT, KB' browser-artifacts/source-paving-dom.html
+          browser_screenshot "$SOURCE_PAVING_URL" browser-artifacts/source-paving-600x300.png
+
+          SOURCE_VASE_URL="http://127.0.0.1:4173/?component=ermis-vase-600x260x260"
+          browser_dump "$SOURCE_VASE_URL" browser-artifacts/source-vase-dom.html
+          grep -q 'data-source-component-id="ermis-vase-600x260x260"' browser-artifacts/source-vase-dom.html
+          grep -q 'data-source-component-category="vase"' browser-artifacts/source-vase-dom.html
+          grep -q 'data-selected-source-component="ermis-vase-600x260x260"' browser-artifacts/source-vase-dom.html
+          grep -q 'Ваза: 600 × 260 × 260 мм · K06' browser-artifacts/source-vase-dom.html
+          browser_screenshot "$SOURCE_VASE_URL" browser-artifacts/source-vase-600x260x260.png
+
+          SOURCE_LAMPADA_URL="http://127.0.0.1:4173/?component=ermis-lampada-300x150x150"
+          browser_dump "$SOURCE_LAMPADA_URL" browser-artifacts/source-lampada-dom.html
+          grep -q 'data-source-component-id="ermis-lampada-300x150x150"' browser-artifacts/source-lampada-dom.html
+          grep -q 'data-source-component-category="accessory"' browser-artifacts/source-lampada-dom.html
+          grep -q 'data-selected-source-component="ermis-lampada-300x150x150"' browser-artifacts/source-lampada-dom.html
+          grep -q 'Лампада: 300 × 150 × 150 мм · K06, K05' browser-artifacts/source-lampada-dom.html
+          browser_screenshot "$SOURCE_LAMPADA_URL" browser-artifacts/source-lampada-300x150x150.png
+
+          SOURCE_F01_URL="http://127.0.0.1:4173/?component=ermis-fence-f01"
+          browser_dump "$SOURCE_F01_URL" browser-artifacts/source-f01-dom.html
+          grep -q 'data-source-component-id="ermis-fence-f01"' browser-artifacts/source-f01-dom.html
+          grep -q 'data-source-component-page="29"' browser-artifacts/source-f01-dom.html
+          grep -q 'data-source-sku="F-01"' browser-artifacts/source-f01-dom.html
+          grep -q 'Крыло: 600 × 400 × 70 мм · K06' browser-artifacts/source-f01-dom.html
+          grep -q 'произвольная калитка к исходной модели не добавляется' browser-artifacts/source-f01-dom.html
+          browser_screenshot "$SOURCE_F01_URL" browser-artifacts/source-fence-f01.png
+
+          SOURCE_F02_URL="http://127.0.0.1:4173/?component=ermis-fence-f02"
+          browser_dump "$SOURCE_F02_URL" browser-artifacts/source-f02-dom.html
+          grep -q 'data-source-component-id="ermis-fence-f02"' browser-artifacts/source-f02-dom.html
+          grep -q 'data-source-component-page="29"' browser-artifacts/source-f02-dom.html
+          grep -q 'data-source-sku="F-02"' browser-artifacts/source-f02-dom.html
+          browser_screenshot "$SOURCE_F02_URL" browser-artifacts/source-fence-f02.png
+
+          SOURCE_F03_URL="http://127.0.0.1:4173/?component=ermis-fence-f03"
+          browser_dump "$SOURCE_F03_URL" browser-artifacts/source-f03-dom.html
+          grep -q 'data-source-component-id="ermis-fence-f03"' browser-artifacts/source-f03-dom.html
+          grep -q 'data-source-component-page="30"' browser-artifacts/source-f03-dom.html
+          grep -q 'data-source-sku="F-03"' browser-artifacts/source-f03-dom.html
+          grep -q 'Парапет: 900 × 120 × 120 мм · K06' browser-artifacts/source-f03-dom.html
+          grep -q 'Балясина: 300 × 100 × 100 мм · K06' browser-artifacts/source-f03-dom.html
+          browser_screenshot "$SOURCE_F03_URL" browser-artifacts/source-fence-f03.png
+
+          SOURCE_F04_URL="http://127.0.0.1:4173/?component=ermis-fence-f04"
+          browser_dump "$SOURCE_F04_URL" browser-artifacts/source-f04-dom.html
+          grep -q 'data-source-component-id="ermis-fence-f04"' browser-artifacts/source-f04-dom.html
+          grep -q 'data-source-component-page="30"' browser-artifacts/source-f04-dom.html
+          grep -q 'data-source-sku="F-04"' browser-artifacts/source-f04-dom.html
+          grep -q 'Столбик: 300 × 120 × 120 мм · K06, K03, K13; Столбик: 1100 × 120 × 70 мм · K06, K03, K13' browser-artifacts/source-f04-dom.html
+          browser_screenshot "$SOURCE_F04_URL" browser-artifacts/source-fence-f04.png
+
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
           grep -q 'data-webgl-ready="true"' browser-artifacts/mobile-dom.html
