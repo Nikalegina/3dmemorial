@@ -212,6 +212,13 @@ export function App() {
           onCanvasReady={setRenderCanvas}
         />
       </div>
+      <div className="mobile-quote-bar" aria-label="Быстрый расчёт проекта">
+        <div>
+          <strong>Ваш 3D‑проект</strong>
+          <span>Передать специалисту для расчёта</span>
+        </div>
+        <button type="button" onClick={requestQuote}>Рассчитать</button>
+      </div>
       <ConfiguratorPanel
         project={normalized}
         onChange={setProject}
