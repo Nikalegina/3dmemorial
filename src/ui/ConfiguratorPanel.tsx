@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
-import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
+import { CATALOG_PRODUCT_FAMILIES } from '../domain/catalogProducts'
+import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, FLOWER_BED_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
   findStandardGlassSteleSize,
@@ -245,6 +246,19 @@ export function ConfiguratorPanel({
       </section>
 
       <section>
+        <h2>Из каталога</h2>
+        <p className="field-hint">Готовые конструкции из каталога можно открыть как редактируемый 3D-проект.</p>
+        <div className="preset-grid">
+          {CATALOG_PRODUCT_FAMILIES.map((item) => (
+            <button key={item.id} className="preset" onClick={() => applyPreset(item.create)} title={item.description}>
+              <strong>{item.name}</strong>
+              <span>{item.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
         <h2>Готовые решения</h2>
         <div className="preset-grid">
           {PROJECT_PRESETS.map((preset) => (
@@ -442,8 +456,7 @@ export function ConfiguratorPanel({
           <label className="field">
             <span>Цветник</span>
             <select value={project.flowerBed.styleId} onChange={(e) => onChange({ ...project, flowerBed: { ...project.flowerBed, styleId: e.target.value as MemorialProject['flowerBed']['styleId'] } })}>
-              <option value="open-granite">Открытый гранитный</option>
-              <option value="closed-granite">Закрытый гранитный</option>
+              {FLOWER_BED_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
             </select>
           </label>
         )}

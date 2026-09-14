@@ -8,6 +8,7 @@ import type {
   BenchStyleId,
   BorderStyleId,
   FenceStyleId,
+  FlowerBedStyleId,
   FurnitureSide,
   GateSide,
   PavingStyleId,
@@ -95,7 +96,7 @@ export interface MemorialProject {
     widthM: number
     depthM: number
   }
-  flowerBed: { enabled: boolean; styleId: 'open-granite' | 'closed-granite' }
+  flowerBed: { enabled: boolean; styleId: FlowerBedStyleId }
   plinth: { enabled: boolean; materialId: 'gabbro' | 'grey-granite' }
   paving: { enabled: boolean; styleId: PavingStyleId }
   border: { enabled: boolean; styleId: BorderStyleId }

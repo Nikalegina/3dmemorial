@@ -57,6 +57,19 @@ function SteleMonument({
         />
       </lineSegments>
 
+      {isGlass && (
+        <group position={[0, 0.012, 0]}>
+          <mesh position={[0, 0, monument.depthM / 2 + 0.015]} castShadow>
+            <boxGeometry args={[monument.widthM + 0.08, 0.025, 0.025]} />
+            <meshPhysicalMaterial color="#111315" roughness={0.18} clearcoat={0.45} clearcoatRoughness={0.1} />
+          </mesh>
+          <mesh position={[0, 0, -monument.depthM / 2 - 0.015]} castShadow>
+            <boxGeometry args={[monument.widthM + 0.08, 0.025, 0.025]} />
+            <meshPhysicalMaterial color="#111315" roughness={0.18} clearcoat={0.45} clearcoatRoughness={0.1} />
+          </mesh>
+        </group>
+      )}
+
       {monument.material === 'hybrid' && (
         <mesh position={[0, monument.heightM * 0.57, monument.depthM / 2 + 0.004]}>
           <planeGeometry args={[monument.widthM * 0.6, monument.heightM * 0.6]} />

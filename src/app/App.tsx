@@ -200,6 +200,7 @@ export function App() {
       className="app-shell"
       data-startup-source={startup.source}
       data-preset-id={startup.context.presetId ?? undefined}
+      data-catalog-product-id={startup.context.catalogProductId ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
       data-visible-steles={getVisibleSteles(normalized).length}
     >

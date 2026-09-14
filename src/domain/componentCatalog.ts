@@ -1,3 +1,13 @@
+export const FLOWER_BED_STYLES = [
+  { id: 'open-granite', name: 'Открытый гранитный', kind: 'soil' },
+  { id: 'closed-granite', name: 'Закрытый гранитный', kind: 'soil' },
+  {
+    id: 'glass-panel-granite-frame',
+    name: 'Стеклянная панель в гранитной рамке',
+    kind: 'glass-panel',
+  },
+] as const
+
 export const PAVING_STYLES = [
   { id: 'stone-grey', name: 'Серая плитка', color: '#85827b', roughness: 0.8 },
   { id: 'granite-dark', name: 'Тёмный гранит', color: '#343638', roughness: 0.34 },
@@ -29,6 +39,7 @@ export const VASE_STYLES = [
   { id: 'tall-vase', name: 'Высокая ваза', heightM: 0.44 },
 ] as const
 
+export type FlowerBedStyleId = typeof FLOWER_BED_STYLES[number]['id']
 export type PavingStyleId = typeof PAVING_STYLES[number]['id']
 export type BorderStyleId = typeof BORDER_STYLES[number]['id']
 export type FenceStyleId = typeof FENCE_STYLES[number]['id']

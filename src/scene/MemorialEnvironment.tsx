@@ -193,8 +193,33 @@ export function MemorialEnvironment({ project }: { project: MemorialProject }) {
           <mesh position={[0, 0.06, -0.36]}><boxGeometry args={[flowerBedWidth, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
           <mesh position={[-flowerSideX, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
           <mesh position={[flowerSideX, 0.06, 0]}><boxGeometry args={[0.08, 0.12, 0.78]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>
-          {project.flowerBed.styleId === 'closed-granite' && <mesh position={[0, 0.06, 0.36]}><boxGeometry args={[flowerBedWidth, 0.12, 0.08]} /><meshStandardMaterial color="#1d1f21" roughness={0.28} /></mesh>}
-          <mesh position={[0, 0.015, 0]}><boxGeometry args={[Math.max(0.46, flowerBedWidth - 0.16), 0.03, 0.62]} /><meshStandardMaterial color="#49392b" roughness={1} /></mesh>
+          {(project.flowerBed.styleId === 'closed-granite' || project.flowerBed.styleId === 'glass-panel-granite-frame') && (
+            <mesh position={[0, 0.06, 0.36]}>
+              <boxGeometry args={[flowerBedWidth, 0.12, 0.08]} />
+              <meshPhysicalMaterial color="#151719" roughness={0.18} clearcoat={0.5} clearcoatRoughness={0.1} />
+            </mesh>
+          )}
+          {project.flowerBed.styleId === 'glass-panel-granite-frame' ? (
+            <mesh position={[0, 0.035, 0]} receiveShadow>
+              <boxGeometry args={[Math.max(0.46, flowerBedWidth - 0.16), 0.035, 0.62]} />
+              <meshPhysicalMaterial
+                color="#20262a"
+                roughness={0.07}
+                metalness={0.01}
+                transmission={0.08}
+                thickness={0.012}
+                ior={1.45}
+                clearcoat={0.9}
+                clearcoatRoughness={0.035}
+                envMapIntensity={1.35}
+              />
+            </mesh>
+          ) : (
+            <mesh position={[0, 0.015, 0]}>
+              <boxGeometry args={[Math.max(0.46, flowerBedWidth - 0.16), 0.03, 0.62]} />
+              <meshStandardMaterial color="#49392b" roughness={1} />
+            </mesh>
+          )}
         </group>
       )}
 

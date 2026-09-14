@@ -1,9 +1,11 @@
 import { createDefaultProject, type MemorialProject } from './memorialProject.ts'
+import { getCatalogProductFamily, isCatalogProductFamilyId, type CatalogProductFamilyId } from './catalogProducts.ts'
 import { getProjectPreset, PROJECT_PRESETS, type ProjectPresetId } from './presets.ts'
 import { readSharedProject } from './shareProject.ts'
 
 export interface CatalogEntryContext {
   presetId: ProjectPresetId | null
+  catalogProductId: CatalogProductFamilyId | null
   sourceSku: string | null
 }
 
@@ -22,10 +24,15 @@ function parsePresetId(value: string | null): ProjectPresetId | null {
   return value as ProjectPresetId
 }
 
+function parseCatalogProductId(value: string | null): CatalogProductFamilyId | null {
+  if (!value || !isCatalogProductFamilyId(value)) return null
+  return value
+}
+
 function parseSourceSku(value: string | null): string | null {
   if (!value) return null
   const normalized = value.trim()
-  return /^[A-Za-z0-9._-]{1,80}$/.test(normalized) ? normalized : null
+  return /^[\p{L}\p{N}._-]{1,80}$/u.test(normalized) ? normalized : null
 }
 
 export function readCatalogEntry(url: string): CatalogEntryContext {
@@ -33,10 +40,11 @@ export function readCatalogEntry(url: string): CatalogEntryContext {
     const parsed = new URL(url)
     return {
       presetId: parsePresetId(parsed.searchParams.get('preset')),
+      catalogProductId: parseCatalogProductId(parsed.searchParams.get('catalog')),
       sourceSku: parseSourceSku(parsed.searchParams.get('sourceSku')),
     }
   } catch {
-    return { presetId: null, sourceSku: null }
+    return { presetId: null, catalogProductId: null, sourceSku: null }
   }
 }
 
@@ -44,6 +52,14 @@ export function resolveStartupProject(url: string, storedProject: MemorialProjec
   const context = readCatalogEntry(url)
   const shared = readSharedProject(url)
   if (shared) return { project: shared, context, source: 'shared' }
+
+  if (context.catalogProductId) {
+    return {
+      project: getCatalogProductFamily(context.catalogProductId).create(),
+      context,
+      source: 'catalog',
+    }
+  }
 
   if (context.presetId) {
     return {
