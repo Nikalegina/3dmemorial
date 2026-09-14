@@ -14,7 +14,8 @@ Independent web application for configuring and presenting complete memorial com
 - versioned project schema with migrations;
 - local save, JSON export, PNG render export and privacy-safe share links;
 - controlled asset registry and license validation;
-- fail-closed production asset manifest/index pipeline for models, textures and fonts.
+- fail-closed production asset manifest/index pipeline for models, textures and fonts;
+- versioned quote-request contract for future main-site/BFF/CRM integration.
 
 ## Local development
 
@@ -47,4 +48,4 @@ npm run check:asset-index
 - Do not persist a raw Three.js scene; persist versioned configuration.
 - Do not couple pricing to the editor until a canonical price/BOM authority exists.
 
-See `docs/ROADMAP.md`, `docs/PRODUCTION-ASSET-PIPELINE.md` and the gate reports under `docs/`.
+See `docs/ROADMAP.md`, `docs/PRODUCTION-ASSET-PIPELINE.md`, `docs/QUOTE-REQUEST-CONTRACT-V1.md` and the gate reports under `docs/`.
