@@ -332,7 +332,7 @@ function FenceFinial({ x, z, postHeight }: { x: number; z: number; postHeight: n
   )
 }
 
-function WingGeometry({ variant }: { variant: 'f01' | 'f02' }) {
+function useWingGeometry(variant: 'f01' | 'f02') {
   const geometry = useMemo(() => {
     const width = 0.6
     const height = 0.4
@@ -376,7 +376,7 @@ function SourceWing({
   position: [number, number, number]
   rotationY?: number
 }) {
-  const geometry = WingGeometry({ variant })
+  const geometry = useWingGeometry(variant)
   return (
     <mesh geometry={geometry} position={position} rotation={[0, rotationY, 0]} castShadow receiveShadow>
       <PolishedBlackStone />
