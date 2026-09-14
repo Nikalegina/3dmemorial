@@ -12,9 +12,9 @@ import {
 } from '../src/domain/sourceCatalogProfiles.ts'
 import { createSteleGeometry } from '../src/scene/geometry.ts'
 
-test('source catalog registry contains 105 managed profiles and 225 confirmed size variants', () => {
-  assert.equal(SOURCE_CATALOG_PROFILE_COUNT, 105)
-  assert.equal(SOURCE_CATALOG_VARIANT_COUNT, 225)
+test('source catalog registry contains 106 renderable profiles and 226 confirmed size variants', () => {
+  assert.equal(SOURCE_CATALOG_PROFILE_COUNT, 106)
+  assert.equal(SOURCE_CATALOG_VARIANT_COUNT, 226)
 
   const ids = SOURCE_CATALOG_PROFILES.map((profile) => profile.id)
   const categoryModels = SOURCE_CATALOG_PROFILES.map((profile) => `${profile.sourceCategory}:${profile.sourceModel}`)
@@ -23,6 +23,7 @@ test('source catalog registry contains 105 managed profiles and 225 confirmed si
 
   assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'figured').length, 84)
   assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'family').length, 21)
+  assert.equal(SOURCE_CATALOG_PROFILES.filter((profile) => profile.sourceCategory === 'elite').length, 1)
 })
 
 test('every source profile has bounded visual contour and category-specific source dimensions', () => {
@@ -48,6 +49,11 @@ test('every source profile has bounded visual contour and category-specific sour
         assert.ok(variant.heightMm >= 400 && variant.heightMm <= 900, profile.id)
         assert.ok(variant.widthMm >= 820 && variant.widthMm <= 1200, profile.id)
         assert.ok(variant.depthMm >= 50 && variant.depthMm <= 70, profile.id)
+      } else if (profile.sourceCategory === 'elite') {
+        assert.ok(profile.sourcePage >= 25 && profile.sourcePage <= 27, profile.id)
+        assert.ok(variant.heightMm >= 1000 && variant.heightMm <= 2500, profile.id)
+        assert.ok(variant.widthMm >= 700 && variant.widthMm <= 1500, profile.id)
+        assert.ok(variant.depthMm >= 100 && variant.depthMm <= 300, profile.id)
       } else {
         assert.fail(`Unexpected source category in this gate: ${profile.sourceCategory}`)
       }
@@ -57,7 +63,7 @@ test('every source profile has bounded visual contour and category-specific sour
   }
 })
 
-test('all 105 source profiles generate non-empty Three.js extruded geometry', () => {
+test('all 106 renderable source profiles generate non-empty Three.js extruded geometry', () => {
   for (const profile of SOURCE_CATALOG_PROFILES) {
     const variant = profile.variants[0]
     assert.ok(variant, profile.id)
@@ -143,4 +149,25 @@ test('source catalog lookup resolves source model 105 and rejects unknown ids', 
   assert.equal(isSourceCatalogProfileId('ermis-105'), true)
   assert.equal(isSourceCatalogProfileId('ermis-family-71'), true)
   assert.equal(isSourceCatalogProfileId('ermis-does-not-exist'), false)
+})
+
+
+test('elite model 19 is the only source-backed elite profile in this gate', () => {
+  const elite19 = getSourceCatalogProfileByModel('19', 'elite')
+  assert.ok(elite19)
+  assert.equal(elite19.id, 'ermis-elite-19')
+  assert.equal(elite19.sourcePage, 26)
+  assert.deepEqual(elite19.variants[0], {
+    heightMm: 1500,
+    widthMm: 700,
+    depthMm: 150,
+    materialCodes: ['K06', 'K05', 'K10', 'K11'],
+  })
+
+  const project = createSourceCatalogProject('ermis-elite-19', 0)
+  assert.equal(project.steles[0].monument.shape, 'ermis-elite-19')
+  assert.equal(project.steles[0].monument.heightM, 1.5)
+  assert.equal(project.steles[0].monument.widthM, 0.7)
+  assert.equal(project.steles[0].monument.depthM, 0.15)
+  assert.equal(project.steles[0].monument.sourceStoneCode, 'K06')
 })
