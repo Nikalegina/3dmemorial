@@ -25,6 +25,10 @@ interface Props {
   portraitErrors: Record<string, string | null>
   cameraPreset: CameraPreset
   onCameraPreset: (preset: CameraPreset) => void
+  canUndo: boolean
+  canRedo: boolean
+  onUndo: () => void
+  onRedo: () => void
   onSave: () => void
   onReset: () => void
   onExportJson: () => void
@@ -45,6 +49,10 @@ export function ConfiguratorPanel({
   portraitErrors,
   cameraPreset,
   onCameraPreset,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
   onSave,
   onReset,
   onExportJson,
@@ -157,8 +165,18 @@ export function ConfiguratorPanel({
     <aside className="panel">
       <div className="brand">
         <strong>КРЫМ МОНУМЕНТ</strong>
-        <span>Memorial 3D Studio / Gate 5</span>
+        <span>Memorial 3D Studio / Gate 7</span>
       </div>
+
+      <div className="history-toolbar" aria-label="История изменений">
+        <button type="button" onClick={onUndo} disabled={!canUndo} title="Отменить — Ctrl/Cmd+Z">
+          ← Отменить
+        </button>
+        <button type="button" onClick={onRedo} disabled={!canRedo} title="Повторить — Ctrl+Y или Ctrl/Cmd+Shift+Z">
+          Повторить →
+        </button>
+      </div>
+      <p className="autosave-note">Изменения автоматически сохраняются локально после редактирования.</p>
 
       <section>
         <h2>Тип композиции</h2>
