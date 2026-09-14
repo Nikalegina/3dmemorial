@@ -2,6 +2,7 @@ import { createDefaultProject, type MemorialProject } from './memorialProject.ts
 import { getCatalogProductFamily, isCatalogProductFamilyId, type CatalogProductFamilyId } from './catalogProducts.ts'
 import { getProjectPreset, PROJECT_PRESETS, type ProjectPresetId } from './presets.ts'
 import { readSharedProject } from './shareProject.ts'
+import { createProjectFromSourceCatalogModel, findSourceCatalogModelBySku } from './sourceCatalog.ts'
 
 export interface CatalogEntryContext {
   presetId: ProjectPresetId | null
@@ -56,6 +57,15 @@ export function resolveStartupProject(url: string, storedProject: MemorialProjec
   if (context.catalogProductId) {
     return {
       project: getCatalogProductFamily(context.catalogProductId).create(),
+      context,
+      source: 'catalog',
+    }
+  }
+
+  const sourceModel = findSourceCatalogModelBySku(context.sourceSku)
+  if (sourceModel) {
+    return {
+      project: createProjectFromSourceCatalogModel(sourceModel.id),
       context,
       source: 'catalog',
     }
