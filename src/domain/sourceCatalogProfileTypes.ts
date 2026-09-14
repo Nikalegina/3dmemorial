@@ -1,4 +1,5 @@
 export type SourceCatalogProfileId = `ermis-${string}`
+export type SourceCatalogCategory = 'figured' | 'family' | 'elite' | 'combined'
 
 export type SourceCatalogVariantTuple = readonly [
   heightMm: number,
@@ -27,6 +28,7 @@ export interface SourceCatalogVariant {
 export interface SourceCatalogProfile {
   id: SourceCatalogProfileId
   sourceModel: string
+  sourceCategory: SourceCatalogCategory
   sourcePage: number
   variants: readonly SourceCatalogVariant[]
   points: readonly SourceCatalogPointTuple[]
