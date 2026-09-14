@@ -2,6 +2,14 @@ import {
   createDefaultProject,
   type MemorialProject,
 } from './memorialProject.ts'
+import {
+  BENCH_STYLES,
+  FENCE_STYLES,
+  FLOWER_BED_STYLES,
+  PAVING_STYLES,
+  TABLE_STYLES,
+  VASE_STYLES,
+} from './componentCatalog.ts'
 import type { SourceComponentProductId } from './sourceComponentCatalog.ts'
 
 export function createSourceComponentProject(id: SourceComponentProductId): MemorialProject {
@@ -60,4 +68,27 @@ export function createSourceComponentProject(id: SourceComponentProductId): Memo
 
   const exhaustive: never = id
   throw new Error(`Unsupported source component product: ${exhaustive}`)
+}
+
+
+export function findSourceComponentProductId(project: MemorialProject): SourceComponentProductId | null {
+  const fence = FENCE_STYLES.find((item) => item.id === project.fence.styleId)
+  if (project.fence.enabled && fence && 'sourceComponentId' in fence) return fence.sourceComponentId
+
+  const table = TABLE_STYLES.find((item) => item.id === project.table.styleId)
+  if (project.table.enabled && table && 'sourceComponentId' in table) return table.sourceComponentId
+
+  const bench = BENCH_STYLES.find((item) => item.id === project.bench.styleId)
+  if (project.bench.enabled && bench && 'sourceComponentId' in bench) return bench.sourceComponentId
+
+  const flowerBed = FLOWER_BED_STYLES.find((item) => item.id === project.flowerBed.styleId)
+  if (project.flowerBed.enabled && flowerBed && 'sourceComponentId' in flowerBed) return flowerBed.sourceComponentId
+
+  const paving = PAVING_STYLES.find((item) => item.id === project.paving.styleId)
+  if (project.paving.enabled && paving && 'sourceComponentId' in paving) return paving.sourceComponentId
+
+  const vase = VASE_STYLES.find((item) => item.id === project.vase.styleId)
+  if (project.vase.enabled && vase && 'sourceComponentId' in vase) return vase.sourceComponentId
+
+  return null
 }
