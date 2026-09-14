@@ -43,15 +43,20 @@ test('elite model 24 keeps both source-confirmed variants', () => {
   ])
 })
 
-test('only elite model 19 is promoted to the profile renderer in this gate', () => {
+test('five elite models are runtime-backed with explicit strategies', () => {
   const runtime = ELITE_CATALOG_MODELS.filter((item) => item.runtimeProfileId)
-  assert.equal(runtime.length, 1)
-  assert.equal(runtime[0].sourceModel, '19')
-  assert.equal(runtime[0].strategy, 'profile-extrusion')
-  assert.equal(runtime[0].runtimeProfileId, 'ermis-elite-19')
+  assert.deepEqual(runtime.map((item) => item.sourceModel), ['4', '19', '22', '24', '25'])
+  assert.equal(runtime.filter((item) => item.strategy === 'profile-extrusion').length, 1)
+  assert.equal(runtime.filter((item) => item.strategy === 'procedural-compound').length, 4)
+
+  for (const sourceModel of ['4', '19', '22', '24', '25']) {
+    const model = runtime.find((item) => item.sourceModel === sourceModel)
+    assert.ok(model?.runtimeProfileId, sourceModel)
+    const profile = getSourceCatalogProfile(model.runtimeProfileId)
+    assert.equal(profile.sourceCategory, 'elite')
+  }
 
   const profile = getSourceCatalogProfile('ermis-elite-19')
-  assert.equal(profile.sourceCategory, 'elite')
   assert.equal(profile.sourcePage, 26)
   assert.equal(profile.variants[0].heightMm, 1500)
   assert.equal(profile.variants[0].widthMm, 700)
