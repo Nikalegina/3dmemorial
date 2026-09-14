@@ -141,6 +141,23 @@ jobs:
           grep -q 'Семейный' browser-artifacts/family-dom.html
           browser_screenshot "$FAMILY_URL" browser-artifacts/family-classic.png
 
+          CATALOG_GLASS_URL="http://127.0.0.1:4173/?catalog=catalog-glass-complete&sourceSku=%D0%A1%D0%A2-01"
+          browser_dump "$CATALOG_GLASS_URL" browser-artifacts/catalog-glass-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/catalog-glass-dom.html
+          grep -q 'data-catalog-product-id="catalog-glass-complete"' browser-artifacts/catalog-glass-dom.html
+          grep -q 'data-source-sku="СТ-01"' browser-artifacts/catalog-glass-dom.html
+          grep -q 'data-visible-steles="1"' browser-artifacts/catalog-glass-dom.html
+          grep -q 'Стеклянная панель в гранитной рамке' browser-artifacts/catalog-glass-dom.html
+          grep -q 'Монтаж в паз' browser-artifacts/catalog-glass-dom.html
+          browser_screenshot "$CATALOG_GLASS_URL" browser-artifacts/catalog-glass-complete.png
+
+          CATALOG_COMBINED_URL="http://127.0.0.1:4173/?catalog=catalog-granite-glass&sourceSku=%D0%A1%D0%A2-%D0%9A-01"
+          browser_dump "$CATALOG_COMBINED_URL" browser-artifacts/catalog-combined-dom.html
+          grep -q 'data-catalog-product-id="catalog-granite-glass"' browser-artifacts/catalog-combined-dom.html
+          grep -q 'data-source-sku="СТ-К-01"' browser-artifacts/catalog-combined-dom.html
+          grep -q 'data-visible-steles="2"' browser-artifacts/catalog-combined-dom.html
+          browser_screenshot "$CATALOG_COMBINED_URL" browser-artifacts/catalog-granite-glass.png
+
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
           grep -q 'data-webgl-ready="true"' browser-artifacts/mobile-dom.html
