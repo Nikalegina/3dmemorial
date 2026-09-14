@@ -36,6 +36,7 @@ export function App() {
   const [importStatus, setImportStatus] = useState<string | null>(null)
   const [highQualityRender, setHighQualityRender] = useState(false)
   const normalized = useMemo(() => normalizeProject(project), [project])
+  const rfqShareUrl = useMemo(() => createShareUrl(normalized, window.location.href), [normalized])
 
   useEffect(() => {
     portraitUrlsRef.current = portraitUrls
@@ -209,6 +210,11 @@ export function App() {
         onShare={shareProject}
         shareStatus={shareStatus}
         shareOmitsPortrait={Object.keys(portraitUrls).length > 0}
+        rfqShareUrl={rfqShareUrl}
+        rfqSourceSku={startup.context.sourceSku}
+        rfqPresetId={startup.context.presetId}
+        rfqStartupSource={startup.source}
+        rfqLocalPortraitCount={Object.keys(portraitUrls).length}
       />
     </main>
   )
