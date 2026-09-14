@@ -90,3 +90,14 @@ test('glass-panel flowerbed keeps its managed catalog name in specification', ()
   const complex = spec.sections.find((section) => section.title === 'Мемориальный комплекс')
   assert.equal(complex?.rows.find((row) => row.label === 'Цветник')?.value, 'Стеклянная панель в гранитной рамке')
 })
+
+
+test('family source catalog specification preserves family category and exact source material', () => {
+  const project = createSourceCatalogProject('ermis-family-71', 0)
+  const spec = buildProjectSpecification(project)
+  const monument = spec.sections.find((section) => section.title === 'Памятник')
+
+  assert.equal(monument?.rows.find((row) => row.label === 'Форма')?.value, 'Семейный каталог № 71')
+  assert.equal(monument?.rows.find((row) => row.label === 'Размеры')?.value, '1.200 × 0.900 × 0.070 м')
+  assert.equal(monument?.rows.find((row) => row.label === 'Порода по каталогу')?.value, 'K06 · BLACK GABBRO')
+})

@@ -185,6 +185,20 @@ jobs:
           grep -q '1000 × 500 × 50 мм' browser-artifacts/source-114-dom.html
           browser_screenshot "$SOURCE_114_URL" browser-artifacts/catalog-profile-114.png
 
+          FAMILY_71_URL="http://127.0.0.1:4173/?profile=ermis-family-71&variant=0&sourceSku=FAM-71"
+          browser_dump "$FAMILY_71_URL" browser-artifacts/family-71-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/family-71-dom.html
+          grep -q 'data-source-profile-id="ermis-family-71"' browser-artifacts/family-71-dom.html
+          grep -q 'data-source-variant-index="0"' browser-artifacts/family-71-dom.html
+          grep -q 'data-source-sku="FAM-71"' browser-artifacts/family-71-dom.html
+          grep -q 'data-selected-catalog-profile="ermis-family-71"' browser-artifacts/family-71-dom.html
+          grep -q 'data-catalog-category="family"' browser-artifacts/family-71-dom.html
+          grep -q 'data-source-stone-code="K06"' browser-artifacts/family-71-dom.html
+          grep -q '№ 71' browser-artifacts/family-71-dom.html
+          grep -q '900 × 1200 × 70 мм' browser-artifacts/family-71-dom.html
+          grep -q '105 исходных форм и 225 подтверждённых размерных вариантов' browser-artifacts/family-71-dom.html
+          browser_screenshot "$FAMILY_71_URL" browser-artifacts/catalog-family-71.png
+
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
           grep -q 'data-webgl-ready="true"' browser-artifacts/mobile-dom.html

@@ -1,8 +1,10 @@
 import { createDefaultProject, normalizeProject, type MemorialProject } from './memorialProject.ts'
 import { SOURCE_CATALOG_RAW_PART_1 } from './sourceCatalogProfiles.part1.ts'
 import { SOURCE_CATALOG_RAW_PART_2 } from './sourceCatalogProfiles.part2.ts'
+import { SOURCE_CATALOG_RAW_FAMILY } from './sourceCatalogProfiles.family.ts'
 import { getSourceStoneMaterial, resolveSourceStoneCodes } from './sourceStoneMaterials.ts'
 import type {
+  SourceCatalogCategory,
   SourceCatalogProfile,
   SourceCatalogProfileId,
   SourceCatalogRawProfileTuple,
@@ -12,13 +14,22 @@ import type {
 const RAW_SOURCE_CATALOG = [
   ...SOURCE_CATALOG_RAW_PART_1,
   ...SOURCE_CATALOG_RAW_PART_2,
+  ...SOURCE_CATALOG_RAW_FAMILY,
 ] as const satisfies readonly SourceCatalogRawProfileTuple[]
+
+function sourceCategoryFor(id: SourceCatalogProfileId): SourceCatalogCategory {
+  if (id.startsWith('ermis-family-')) return 'family'
+  if (id.startsWith('ermis-elite-')) return 'elite'
+  if (id.startsWith('ermis-combined-')) return 'combined'
+  return 'figured'
+}
 
 function toProfile(raw: SourceCatalogRawProfileTuple): SourceCatalogProfile {
   const [id, sourceModel, sourcePage, variants, points] = raw
   return {
     id,
     sourceModel,
+    sourceCategory: sourceCategoryFor(id),
     sourcePage,
     variants: variants.map(([heightMm, widthMm, depthMm, materialCodes]): SourceCatalogVariant => ({
       heightMm,
@@ -44,8 +55,14 @@ export function getSourceCatalogProfile(id: SourceCatalogProfileId): SourceCatal
   return profile
 }
 
-export function getSourceCatalogProfileByModel(sourceModel: string): SourceCatalogProfile | null {
-  return SOURCE_CATALOG_PROFILES.find((item) => item.sourceModel === sourceModel) ?? null
+export function getSourceCatalogProfileByModel(
+  sourceModel: string,
+  sourceCategory?: SourceCatalogCategory,
+): SourceCatalogProfile | null {
+  return SOURCE_CATALOG_PROFILES.find((item) =>
+    item.sourceModel === sourceModel
+    && (!sourceCategory || item.sourceCategory === sourceCategory)
+  ) ?? null
 }
 
 export function createSourceCatalogProject(

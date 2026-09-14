@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
 import { CATALOG_PRODUCT_FAMILIES } from '../domain/catalogProducts'
+import type { SourceCatalogCategory } from '../domain/sourceCatalogProfileTypes'
 import {
   SOURCE_CATALOG_PROFILES,
   createSourceCatalogProject,
@@ -86,6 +87,8 @@ export function ConfiguratorPanel({
 }: Props) {
   const [activeSteleIndex, setActiveSteleIndex] = useState(0)
   const [catalogProfileId, setCatalogProfileId] = useState<string>(SOURCE_CATALOG_PROFILES[0]?.id ?? '')
+  const [catalogCategory, setCatalogCategory] = useState<SourceCatalogCategory>('figured')
+  const [catalogQuery, setCatalogQuery] = useState('')
   const visibleSteles = getVisibleSteles(project)
   const safeIndex = Math.min(activeSteleIndex, Math.max(0, visibleSteles.length - 1))
   const activeStele = visibleSteles[safeIndex] ?? project.steles[0]
@@ -106,16 +109,22 @@ export function ConfiguratorPanel({
   const selectedSourceStone = activeStele.monument.sourceStoneCode
     ? getSourceStoneMaterial(activeStele.monument.sourceStoneCode)
     : null
+  const visibleCatalogProfiles = SOURCE_CATALOG_PROFILES.filter((profile) => {
+    if (profile.sourceCategory !== catalogCategory) return false
+    const query = catalogQuery.trim().toLowerCase()
+    if (!query) return true
+    return profile.sourceModel.toLowerCase().includes(query) || profile.id.toLowerCase().includes(query)
+  })
 
   useEffect(() => {
     if (activeSteleIndex !== safeIndex) setActiveSteleIndex(safeIndex)
   }, [activeSteleIndex, safeIndex])
 
   useEffect(() => {
-    if (sourceCatalogProfile && catalogProfileId !== sourceCatalogProfile.id) {
-      setCatalogProfileId(sourceCatalogProfile.id)
-    }
-  }, [catalogProfileId, sourceCatalogProfile])
+    if (!sourceCatalogProfile) return
+    if (catalogProfileId !== sourceCatalogProfile.id) setCatalogProfileId(sourceCatalogProfile.id)
+    if (catalogCategory !== sourceCatalogProfile.sourceCategory) setCatalogCategory(sourceCatalogProfile.sourceCategory)
+  }, [catalogCategory, catalogProfileId, sourceCatalogProfile])
 
 
   const updateStele = (steleId: string, updater: (stele: MemorialStele) => MemorialStele) => {
@@ -318,13 +327,38 @@ export function ConfiguratorPanel({
         </div>
 
         <label className="field">
-          <span>Фигурная модель из исходного каталога</span>
+          <span>Раздел исходного каталога</span>
+          <select
+            value={catalogCategory}
+            data-catalog-category={catalogCategory}
+            onChange={(e) => {
+              const next = e.target.value as SourceCatalogCategory
+              setCatalogCategory(next)
+              const first = SOURCE_CATALOG_PROFILES.find((profile) => profile.sourceCategory === next)
+              if (first) setCatalogProfileId(first.id)
+            }}
+          >
+            <option value="figured">Фигурные памятники · 84 модели</option>
+            <option value="family">Семейные памятники · 21 модель</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Поиск по номеру модели</span>
+          <input
+            type="search"
+            value={catalogQuery}
+            placeholder="Например: 71"
+            onChange={(e) => setCatalogQuery(e.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span>Модель из исходного каталога</span>
           <select
             value={catalogProfileId}
             data-selected-catalog-profile={catalogProfileId}
             onChange={(e) => setCatalogProfileId(e.target.value)}
           >
-            {SOURCE_CATALOG_PROFILES.map((profile) => (
+            {visibleCatalogProfiles.map((profile) => (
               <option key={profile.id} value={profile.id}>
                 № {profile.sourceModel} · {profile.variants.length} {profile.variants.length === 1 ? 'размер' : 'размера/варианта'}
               </option>
@@ -340,7 +374,7 @@ export function ConfiguratorPanel({
         >
           Открыть модель в 3D
         </button>
-        <p className="field-hint">84 исходные формы и 193 подтверждённых размерных варианта. Геометрия профиля восстановлена по каталожным product render, размеры и коды пород сохранены из каталога.</p>
+        <p className="field-hint">105 исходных форм и 225 подтверждённых размерных вариантов: 84 фигурные модели и 21 семейная. Геометрия профиля восстановлена по catalog product render; размеры и коды пород сохранены из исходного каталога.</p>
       </section>
 
       <section>
