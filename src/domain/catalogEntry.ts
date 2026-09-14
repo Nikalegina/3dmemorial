@@ -1,11 +1,14 @@
 import { createDefaultProject, type MemorialProject } from './memorialProject.ts'
 import { getCatalogProductFamily, isCatalogProductFamilyId, type CatalogProductFamilyId } from './catalogProducts.ts'
+import { createSourceCatalogProject, isSourceCatalogProfileId } from './sourceCatalogProfiles.ts'
+import type { SourceCatalogProfileId } from './sourceCatalogProfileTypes.ts'
 import { getProjectPreset, PROJECT_PRESETS, type ProjectPresetId } from './presets.ts'
 import { readSharedProject } from './shareProject.ts'
 
 export interface CatalogEntryContext {
   presetId: ProjectPresetId | null
   catalogProductId: CatalogProductFamilyId | null
+  sourceProfileId: SourceCatalogProfileId | null
   sourceSku: string | null
 }
 
@@ -29,6 +32,11 @@ function parseCatalogProductId(value: string | null): CatalogProductFamilyId | n
   return value
 }
 
+function parseSourceProfileId(value: string | null): SourceCatalogProfileId | null {
+  if (!value || !isSourceCatalogProfileId(value)) return null
+  return value
+}
+
 function parseSourceSku(value: string | null): string | null {
   if (!value) return null
   const normalized = value.trim()
@@ -41,10 +49,11 @@ export function readCatalogEntry(url: string): CatalogEntryContext {
     return {
       presetId: parsePresetId(parsed.searchParams.get('preset')),
       catalogProductId: parseCatalogProductId(parsed.searchParams.get('catalog')),
+      sourceProfileId: parseSourceProfileId(parsed.searchParams.get('profile')),
       sourceSku: parseSourceSku(parsed.searchParams.get('sourceSku')),
     }
   } catch {
-    return { presetId: null, catalogProductId: null, sourceSku: null }
+    return { presetId: null, catalogProductId: null, sourceProfileId: null, sourceSku: null }
   }
 }
 
@@ -52,6 +61,14 @@ export function resolveStartupProject(url: string, storedProject: MemorialProjec
   const context = readCatalogEntry(url)
   const shared = readSharedProject(url)
   if (shared) return { project: shared, context, source: 'shared' }
+
+  if (context.sourceProfileId) {
+    return {
+      project: createSourceCatalogProject(context.sourceProfileId),
+      context,
+      source: 'catalog',
+    }
+  }
 
   if (context.catalogProductId) {
     return {
