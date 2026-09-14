@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES, getMaterialDefinition, getShapeDefinition } from '../src/domain/catalog.ts'
+import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES, getMaterialDefinition, getShapeDefinition } from '../src/domain/catalog.ts'
 import { validateProjectCompatibility } from '../src/domain/compatibility.ts'
 import { createDefaultProject, normalizeProject, withLayout } from '../src/domain/memorialProject.ts'
 import { PROJECT_PRESETS } from '../src/domain/presets.ts'
@@ -15,8 +15,9 @@ test('shape catalog has unique ids, fifteen owned profiles and expected families
   assert.equal(getShapeDefinition('book').name, 'Книга')
 })
 
-test('portrait modes include color, black-and-white and engraving preview', () => {
+test('portrait modes and frames expose managed customer options', () => {
   assert.deepEqual(PORTRAIT_MODES.map((item) => item.id), ['color', 'bw', 'engraving'])
+  assert.deepEqual(PORTRAIT_FRAMES.map((item) => item.id), ['oval', 'rectangle', 'full'])
 })
 
 test('material catalog separates expanded stone and glass surfaces', () => {
@@ -38,13 +39,16 @@ test('normalization preserves compatible colored granite and rejects glass on st
 test('presets create valid current-schema projects including paired variants', () => {
   for (const preset of PROJECT_PRESETS) {
     const project = preset.create()
-    assert.equal(project.schemaVersion, 4)
+    assert.equal(project.schemaVersion, 5)
   }
   assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'paired-classic' && preset.create().steles.length >= 2))
   const family = PROJECT_PRESETS.find((preset) => preset.id === 'family-classic')?.create()
   assert.equal(family?.layout.type, 'family')
   assert.equal(family?.steles.length, 3)
   assert.ok((family?.plot.widthM ?? 0) >= 3)
+  const glass = PROJECT_PRESETS.find((preset) => preset.id === 'modern-glass')?.create()
+  assert.equal(glass?.steles[0].portrait.frame, 'full')
+  assert.equal(glass?.steles[0].portrait.mode, 'color')
 })
 
 test('compatibility validation catches a composition that is too wide for its plot', () => {

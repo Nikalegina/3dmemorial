@@ -52,7 +52,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git checkout --orphan public-preview-dist-tmp
-          git rm -rf .
+          git rm -rf . || true
+          git clean -fdx
           cp -R /tmp/public-preview/. .
           git add -A
           git commit -m "deploy: verified Memorial 3D public preview"
