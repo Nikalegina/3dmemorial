@@ -50,9 +50,9 @@ test('quote request builder emits canonical minimal CRM/BFF payload without port
   assert.equal(serialized.includes('portraiturl'), false)
 })
 
-test('quote request requires explicit contact consent and at least one valid contact route', () => {
+test('quote request requires explicit consent and the contact route selected by preferred channel', () => {
   assert.throws(() => build({ consentToContact: false }), /Contact consent is required/)
-  assert.throws(() => build({ phone: '', messengerContact: '' }), /At least one contact method/)
+  assert.throws(() => build({ phone: '', messengerContact: '' }), /Phone is required for PHONE channel/)
   assert.throws(() => build({ phone: '123' }), /10\.\.15 digits/)
 })
 
