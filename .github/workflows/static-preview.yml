@@ -1,0 +1,59 @@
+name: Static Public Preview
+
+on:
+  push:
+    branches:
+      - memorial-3d-public-preview
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: memorial-3d-static-public-preview
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Verify
+        run: npm run test
+
+      - name: Build portable static bundle
+        run: npm run build -- --base ./
+
+      - name: Publish static branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/public-preview
+          cp -R dist/. /tmp/public-preview/
+          touch /tmp/public-preview/.nojekyll
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout --orphan public-preview-dist-tmp
+          git rm -rf .
+          cp -R /tmp/public-preview/. .
+          git add -A
+          git commit -m "deploy: verified Memorial 3D public preview"
+          git push --force origin HEAD:public-preview-dist
