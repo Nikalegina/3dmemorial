@@ -196,8 +196,20 @@ jobs:
           grep -q 'data-source-stone-code="K06"' browser-artifacts/family-71-dom.html
           grep -q '№ 71' browser-artifacts/family-71-dom.html
           grep -q '900 × 1200 × 70 мм' browser-artifacts/family-71-dom.html
-          grep -q '105 исходных форм и 225 подтверждённых размерных вариантов' browser-artifacts/family-71-dom.html
+          grep -q '106 доступных профильных форм и 226 подтверждённых размерных вариантов' browser-artifacts/family-71-dom.html
           browser_screenshot "$FAMILY_71_URL" browser-artifacts/catalog-family-71.png
+
+          ELITE_19_URL="http://127.0.0.1:4173/?profile=ermis-elite-19&variant=0&sourceSku=ELITE-19"
+          browser_dump "$ELITE_19_URL" browser-artifacts/elite-19-dom.html
+          grep -q 'data-startup-source="catalog"' browser-artifacts/elite-19-dom.html
+          grep -q 'data-source-profile-id="ermis-elite-19"' browser-artifacts/elite-19-dom.html
+          grep -q 'data-selected-catalog-profile="ermis-elite-19"' browser-artifacts/elite-19-dom.html
+          grep -q 'data-catalog-category="elite"' browser-artifacts/elite-19-dom.html
+          grep -q 'data-source-stone-code="K06"' browser-artifacts/elite-19-dom.html
+          grep -q 'Исходная модель № 19' browser-artifacts/elite-19-dom.html
+          grep -q '1500 × 700 × 150 мм' browser-artifacts/elite-19-dom.html
+          grep -q 'скульптурные модели не подменяются плоской формой' browser-artifacts/elite-19-dom.html
+          browser_screenshot "$ELITE_19_URL" browser-artifacts/catalog-elite-19.png
 
           MOBILE_URL="http://127.0.0.1:4173/?preset=modern-glass&sourceSku=KM-MOBILE-001"
           browser_dump "$MOBILE_URL" browser-artifacts/mobile-dom.html "390,844"
