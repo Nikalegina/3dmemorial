@@ -819,13 +819,13 @@ export function ConfiguratorPanel({
         </>}
         {project.vase.enabled && <>
           <label className="field">
-            <span>Ваза</span>
+            <span>Ваза / аксессуар</span>
             <select value={project.vase.styleId} onChange={(e) => onChange({ ...project, vase: { ...project.vase, styleId: e.target.value as MemorialProject['vase']['styleId'] } })}>
               {VASE_STYLES.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}
             </select>
           </label>
           <label className="field">
-            <span>Размещение ваз</span>
+            <span>Размещение</span>
             <select value={project.vase.placement} onChange={(e) => onChange({ ...project, vase: { ...project.vase, placement: e.target.value as MemorialProject['vase']['placement'] } })}>
               <option value="left">Слева</option><option value="right">Справа</option><option value="pair">Пара</option>
             </select>
