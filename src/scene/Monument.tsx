@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { getMaterialDefinition } from '../domain/catalog'
+import { getSourceStoneRenderDefinition } from '../domain/sourceCatalog'
 import {
   getCompositionWidth,
   getSteleLayoutPositions,
@@ -25,8 +26,8 @@ function SteleMonument({
 }) {
   const { monument } = stele
   const geometry = useMemo(
-    () => createSteleGeometry(monument.widthM, monument.heightM, monument.depthM, monument.shape),
-    [monument.depthM, monument.heightM, monument.shape, monument.widthM],
+    () => createSteleGeometry(monument.widthM, monument.heightM, monument.depthM, monument.shape, monument.profileId),
+    [monument.depthM, monument.heightM, monument.profileId, monument.shape, monument.widthM],
   )
   const edges = useMemo(() => new THREE.EdgesGeometry(geometry, 28), [geometry])
 
@@ -35,7 +36,9 @@ function SteleMonument({
     geometry.dispose()
   }, [edges, geometry])
 
-  const surface = getMaterialDefinition(monument.surfaceId)
+  const surface = monument.material !== 'glass' && monument.stoneCode
+    ? (getSourceStoneRenderDefinition(monument.stoneCode) ?? getMaterialDefinition(monument.surfaceId))
+    : getMaterialDefinition(monument.surfaceId)
   const isGlass = surface.kind === 'glass'
   const faceZ = isGlass
     ? Math.max(0.0005, monument.depthM / 2 - 0.0008)
