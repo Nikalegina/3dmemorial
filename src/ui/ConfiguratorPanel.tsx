@@ -456,7 +456,7 @@ export function ConfiguratorPanel({
           <p className="field-hint" data-source-component-authority="catalog-pages-27-30">
             Страница {selectedSourceComponent.sourcePage}
             {selectedSourceComponent.sourceSku ? ` · артикул ${selectedSourceComponent.sourceSku}` : ' · артикул в источнике не указан'}.
-            {' '}{selectedSourceComponent.parts.map((part) => `${part.sourceName}: ${formatSourcePartDimensions(part)}`).join('; ')}.
+            {' '}{selectedSourceComponent.parts.map((part) => `${part.sourceName}: ${formatSourcePartDimensions(part)} · ${part.materialCodes.join(', ')}`).join('; ')}.
             {' '}{selectedSourceComponent.visualNotes}
           </p>
         )}
