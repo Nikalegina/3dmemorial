@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent } from 'react'
-import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from '../domain/catalog'
+import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../domain/catalog'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
@@ -13,6 +13,7 @@ import {
   type MemorialStele,
   type MonumentMaterial,
   type MonumentShape,
+  type PortraitFrame,
   type PortraitMode,
   type SurfaceMaterialId,
 } from '../domain/memorialProject'
@@ -286,6 +287,12 @@ export function ConfiguratorPanel({
             {PORTRAIT_MODES.map((mode) => <option value={mode.id} key={mode.id}>{mode.name}</option>)}
           </select>
         </label>
+        <label className="field">
+          <span>Оформление</span>
+          <select value={activeStele.portrait.frame} onChange={(e) => patchPortrait({ frame: e.target.value as PortraitFrame })}>
+            {PORTRAIT_FRAMES.map((frame) => <option value={frame.id} key={frame.id}>{frame.name}</option>)}
+          </select>
+        </label>
         <label className="upload">
           Загрузить фото
           <input
@@ -295,9 +302,13 @@ export function ConfiguratorPanel({
           />
         </label>
         {portraitErrors[activeStele.id] && <p className="field-error">{portraitErrors[activeStele.id]}</p>}
-        {slider('Масштаб', activeStele.portrait.zoom, 1, 3, 0.05, (v) => patchPortrait({ zoom: v }))}
-        {slider('По горизонтали', activeStele.portrait.offsetX, -1, 1, 0.02, (v) => patchPortrait({ offsetX: v }))}
-        {slider('По вертикали', activeStele.portrait.offsetY, -1, 1, 0.02, (v) => patchPortrait({ offsetY: v }))}
+        {slider('Размер портрета', activeStele.portrait.size, 0.6, 1.35, 0.05, (v) => patchPortrait({ size: v }))}
+        {slider('Масштаб фото внутри', activeStele.portrait.zoom, 1, 3, 0.05, (v) => patchPortrait({ zoom: v }))}
+        {slider('Кадр по горизонтали', activeStele.portrait.offsetX, -1, 1, 0.02, (v) => patchPortrait({ offsetX: v }))}
+        {slider('Кадр по вертикали', activeStele.portrait.offsetY, -1, 1, 0.02, (v) => patchPortrait({ offsetY: v }))}
+        {activeStele.monument.material === 'glass' && activeStele.portrait.mode === 'color' && (
+          <p className="field-hint">Для стеклянной стелы цветная фотопечать показывается как предварительная визуализация. Финальная подготовка изображения выполняется специалистом.</p>
+        )}
       </section>
 
       <section>

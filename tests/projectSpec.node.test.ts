@@ -33,8 +33,12 @@ test('paired project specification lists both memorial subjects independently', 
 
 test('project specification keeps inscription placeholders explicit', () => {
   const project = createDefaultProject()
+  project.steles[0].portrait.frame = 'oval'
+  project.steles[0].portrait.size = 1.1
   project.steles[0].inscription.epitaph = ''
   const spec = buildProjectSpecification(project)
   const inscription = spec.sections.find((section) => section.title === 'Портрет и надпись')
+  assert.equal(inscription?.rows.find((row) => row.label === 'Оформление портрета')?.value, 'Овал')
+  assert.equal(inscription?.rows.find((row) => row.label === 'Размер портрета')?.value, '110%')
   assert.equal(inscription?.rows.find((row) => row.label === 'Эпитафия')?.value, '—')
 })

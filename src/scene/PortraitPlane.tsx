@@ -1,6 +1,25 @@
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
-import type { MemorialStele } from '../domain/memorialProject'
+import type { MemorialStele, PortraitFrame } from '../domain/memorialProject'
+
+function applyFrameMask(context: CanvasRenderingContext2D, side: number, frame: PortraitFrame) {
+  if (frame === 'full') return
+
+  context.globalCompositeOperation = 'destination-in'
+  context.fillStyle = '#ffffff'
+  context.beginPath()
+
+  if (frame === 'oval') {
+    context.ellipse(side / 2, side / 2, side * 0.42, side * 0.48, 0, 0, Math.PI * 2)
+  } else {
+    const margin = side * 0.055
+    const radius = side * 0.055
+    context.roundRect(margin, margin, side - margin * 2, side - margin * 2, radius)
+  }
+
+  context.fill()
+  context.globalCompositeOperation = 'source-over'
+}
 
 function drawPlaceholder(context: CanvasRenderingContext2D, side: number, stele: MemorialStele) {
   const isGlass = stele.monument.material === 'glass'
@@ -11,9 +30,15 @@ function drawPlaceholder(context: CanvasRenderingContext2D, side: number, stele:
   context.globalAlpha = isGlass ? 0.48 : 0.56
   context.lineWidth = side * 0.014
 
-  context.beginPath()
-  context.ellipse(side / 2, side * 0.48, side * 0.34, side * 0.43, 0, 0, Math.PI * 2)
-  context.stroke()
+  if (stele.portrait.frame !== 'full') {
+    context.beginPath()
+    if (stele.portrait.frame === 'oval') {
+      context.ellipse(side / 2, side * 0.48, side * 0.34, side * 0.43, 0, 0, Math.PI * 2)
+    } else {
+      context.roundRect(side * 0.16, side * 0.08, side * 0.68, side * 0.8, side * 0.06)
+    }
+    context.stroke()
+  }
 
   context.beginPath()
   context.arc(side / 2, side * 0.39, side * 0.105, 0, Math.PI * 2)
@@ -27,13 +52,19 @@ function drawPlaceholder(context: CanvasRenderingContext2D, side: number, stele:
   context.font = `600 ${Math.round(side * 0.055)}px Arial, sans-serif`
   context.textAlign = 'center'
   context.textBaseline = 'middle'
-  context.fillText('ФОТО', side / 2, side * 0.86)
+  context.fillText(
+    stele.portrait.frame === 'full' ? 'КРУПНАЯ ФОТОПЕЧАТЬ' : 'ФОТО',
+    side / 2,
+    side * 0.86,
+  )
   context.globalAlpha = 1
+
+  applyFrameMask(context, side, stele.portrait.frame)
 }
 
 function usePortraitTexture(url: string | null, stele: MemorialStele) {
   const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null)
-  const { mode, offsetX, offsetY, zoom } = stele.portrait
+  const { mode, frame, offsetX, offsetY, zoom } = stele.portrait
 
   useEffect(() => {
     let cancelled = false
@@ -80,6 +111,8 @@ function usePortraitTexture(url: string | null, stele: MemorialStele) {
           ? 'grayscale(1) contrast(1.7) brightness(1.12)'
           : 'none'
       context.drawImage(image, x, y, width, height)
+      context.filter = 'none'
+      applyFrameMask(context, side, frame)
       publish()
     }
     image.src = url
@@ -87,10 +120,32 @@ function usePortraitTexture(url: string | null, stele: MemorialStele) {
     return () => {
       cancelled = true
     }
-  }, [mode, offsetX, offsetY, stele, url, zoom])
+  }, [frame, mode, offsetX, offsetY, stele, url, zoom])
 
   useEffect(() => () => texture?.dispose(), [texture])
   return texture
+}
+
+function portraitDimensions(stele: MemorialStele): { width: number; height: number; y: number } {
+  const { frame, size } = stele.portrait
+  const widthFactor = frame === 'full' ? 0.72 : frame === 'rectangle' ? 0.58 : 0.52
+  const baseWidth = stele.monument.widthM * widthFactor
+  const width = baseWidth * size
+
+  if (frame === 'full') {
+    return {
+      width,
+      height: Math.min(stele.monument.heightM * 0.48 * size, width * 1.28),
+      y: stele.monument.heightM * 0.69,
+    }
+  }
+
+  const ratio = frame === 'oval' ? 1.24 : 1.12
+  return {
+    width,
+    height: Math.min(stele.monument.heightM * 0.46 * size, width * ratio),
+    y: stele.monument.heightM * 0.63,
+  }
 }
 
 export function PortraitPlane({
@@ -105,12 +160,11 @@ export function PortraitPlane({
   const texture = usePortraitTexture(url, stele)
   if (!texture) return null
 
-  const portraitWidth = stele.monument.widthM * 0.52
-  const portraitHeight = Math.min(stele.monument.heightM * 0.45, portraitWidth * 1.2)
+  const dimensions = portraitDimensions(stele)
 
   return (
-    <mesh position={[0, stele.monument.heightM * 0.63, z]} renderOrder={4}>
-      <planeGeometry args={[portraitWidth, portraitHeight]} />
+    <mesh position={[0, dimensions.y, z]} renderOrder={4}>
+      <planeGeometry args={[dimensions.width, dimensions.height]} />
       <meshBasicMaterial
         map={texture}
         transparent
