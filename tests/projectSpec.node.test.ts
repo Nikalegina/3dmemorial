@@ -31,6 +31,33 @@ test('paired project specification lists both memorial subjects independently', 
   assert.ok(spec.sections.some((section) => section.title === 'Портрет и надпись 2' && section.rows.some((row) => row.value === 'ВТОРОЙ')))
 })
 
+test('glass project specification exposes technical construction without prices', () => {
+  const project = createDefaultProject()
+  const stele = project.steles[0]
+  stele.monument.material = 'glass'
+  stele.monument.surfaceId = 'glass-clear'
+  stele.monument.widthM = 0.5
+  stele.monument.heightM = 1
+  stele.monument.depthM = 0.016
+  stele.glass.thicknessMm = 16
+  stele.glass.clarity = 'low-iron'
+  stele.glass.mountType = 'manet'
+  stele.glass.uvPrintSides = 2
+  stele.glass.printEdgeMarginMm = 12
+
+  const spec = buildProjectSpecification(project)
+  const monument = spec.sections.find((section) => section.title === 'Памятник')
+  assert.equal(monument?.rows.find((row) => row.label === 'Конструкция стекла')?.value, 'Закалённый триплекс')
+  assert.equal(monument?.rows.find((row) => row.label === 'Толщина стекла')?.value, '16 мм (8+8)')
+  assert.equal(monument?.rows.find((row) => row.label === 'Крепление')?.value, 'Монтаж на манетах')
+  assert.equal(monument?.rows.find((row) => row.label === 'УФ-печать')?.value, 'УФ-печать с двух сторон')
+  assert.equal(monument?.rows.find((row) => row.label === 'Минимальный отступ рисунка')?.value, '12 мм')
+  assert.equal(monument?.rows.find((row) => row.label === 'Типоразмер стеклянной стелы')?.value, '500 × 1000 мм')
+
+  const serialized = JSON.stringify(spec).toLowerCase()
+  assert.equal(serialized.includes('цена'), false)
+})
+
 test('project specification keeps inscription placeholders explicit', () => {
   const project = createDefaultProject()
   project.steles[0].portrait.frame = 'oval'

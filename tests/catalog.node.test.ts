@@ -39,7 +39,7 @@ test('normalization preserves compatible colored granite and rejects glass on st
 test('presets create valid current-schema projects including paired variants', () => {
   for (const preset of PROJECT_PRESETS) {
     const project = preset.create()
-    assert.equal(project.schemaVersion, 5)
+    assert.equal(project.schemaVersion, 6)
   }
   assert.ok(PROJECT_PRESETS.some((preset) => preset.id === 'paired-classic' && preset.create().steles.length >= 2))
   const family = PROJECT_PRESETS.find((preset) => preset.id === 'family-classic')?.create()
@@ -49,6 +49,11 @@ test('presets create valid current-schema projects including paired variants', (
   const glass = PROJECT_PRESETS.find((preset) => preset.id === 'modern-glass')?.create()
   assert.equal(glass?.steles[0].portrait.frame, 'full')
   assert.equal(glass?.steles[0].portrait.mode, 'color')
+  assert.equal(glass?.steles[0].monument.widthM, 0.5)
+  assert.equal(glass?.steles[0].monument.heightM, 1)
+  assert.equal(glass?.steles[0].monument.depthM, 0.012)
+  assert.equal(glass?.steles[0].glass.thicknessMm, 12)
+  assert.equal(glass?.steles[0].glass.mountType, 'groove')
 })
 
 test('compatibility validation catches a composition that is too wide for its plot', () => {

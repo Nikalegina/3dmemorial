@@ -23,7 +23,7 @@ test('quote handoff contains configuration and source attribution but no portrai
   assert.equal(envelope.channel, HOST_BRIDGE_CHANNEL)
   assert.equal(envelope.version, HOST_BRIDGE_VERSION)
   assert.equal(envelope.type, 'REQUEST_QUOTE')
-  assert.equal(envelope.projectSchemaVersion, 5)
+  assert.equal(envelope.projectSchemaVersion, 6)
   assert.equal(envelope.project.steles.length, 2)
   assert.equal(envelope.source.sourceSku, 'KM-PAIR-001')
   assert.deepEqual(envelope.privacy, {

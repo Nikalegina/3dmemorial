@@ -1,8 +1,9 @@
 import type { MemorialProject } from './memorialProject'
 import { parseProject, serializeProject } from './memorialProject'
 
-const STORAGE_KEY = 'krym-monument-3d:project:v5'
+const STORAGE_KEY = 'krym-monument-3d:project:v6'
 const LEGACY_STORAGE_KEYS = [
+  'krym-monument-3d:project:v5',
   'krym-monument-3d:project:v4',
   'krym-monument-3d:project:v3',
   'krym-monument-3d:project:v2',
