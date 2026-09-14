@@ -202,6 +202,7 @@ export function App() {
       data-preset-id={startup.context.presetId ?? undefined}
       data-catalog-product-id={startup.context.catalogProductId ?? undefined}
       data-source-profile-id={startup.context.sourceProfileId ?? undefined}
+      data-source-variant-index={startup.context.sourceVariantIndex ?? undefined}
       data-source-sku={startup.context.sourceSku ?? undefined}
       data-visible-steles={getVisibleSteles(normalized).length}
     >
