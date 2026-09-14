@@ -17,7 +17,7 @@ test('quote handoff contains configuration and source attribution but no portrai
     project,
     'https://example.test/constructor?project=encoded',
     'catalog',
-    { presetId: 'paired-glass', catalogProductId: null, sourceProfileId: null, sourceVariantIndex: null, sourceSku: 'KM-PAIR-001' },
+    { presetId: 'paired-glass', catalogProductId: null, sourceProfileId: null, sourceVariantIndex: null, sourceComponentId: null, sourceSku: 'KM-PAIR-001' },
   )
 
   assert.equal(envelope.channel, HOST_BRIDGE_CHANNEL)
@@ -28,6 +28,7 @@ test('quote handoff contains configuration and source attribution but no portrai
   assert.equal(envelope.source.catalogProductId, null)
   assert.equal(envelope.source.sourceProfileId, null)
   assert.equal(envelope.source.sourceVariantIndex, null)
+  assert.equal(envelope.source.sourceComponentId, null)
   assert.equal(envelope.source.sourceSku, 'KM-PAIR-001')
   assert.deepEqual(envelope.privacy, {
     includesPortraitBinary: false,
@@ -60,6 +61,7 @@ test('quote bridge preserves exact source profile attribution', () => {
       catalogProductId: null,
       sourceProfileId: 'ermis-105',
       sourceVariantIndex: 0,
+      sourceComponentId: null,
       sourceSku: 'CAT-105',
     },
   )
@@ -68,4 +70,26 @@ test('quote bridge preserves exact source profile attribution', () => {
   assert.equal(envelope.source.sourceVariantIndex, 0)
   assert.equal(envelope.source.sourceSku, 'CAT-105')
   assert.equal(envelope.project.steles[0].monument.shape, 'ermis-105')
+})
+
+test('quote bridge carries exact source component attribution', () => {
+  const project = createDefaultProject()
+  project.fence.enabled = true
+  project.fence.styleId = 'ermis-fence-f03'
+  const envelope = createQuoteRequestEnvelope(
+    project,
+    'https://example.test/constructor?component=ermis-fence-f03',
+    'catalog',
+    {
+      presetId: null,
+      catalogProductId: null,
+      sourceProfileId: null,
+      sourceVariantIndex: null,
+      sourceComponentId: 'ermis-fence-f03',
+      sourceSku: 'F-03',
+    },
+  )
+  assert.equal(envelope.source.sourceComponentId, 'ermis-fence-f03')
+  assert.equal(envelope.source.sourceSku, 'F-03')
+  assert.equal(envelope.project.fence.styleId, 'ermis-fence-f03')
 })
