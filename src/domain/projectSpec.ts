@@ -1,7 +1,9 @@
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from './catalog.ts'
-import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
+import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, FLOWER_BED_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
 import { findStandardGlassSteleSize, GLASS_CLARITY_OPTIONS, GLASS_MOUNT_OPTIONS, GLASS_UV_PRINT_OPTIONS } from './glassMemorial.ts'
 import { getVisibleSteles, type MemorialProject } from './memorialProject.ts'
+import { getSourceCatalogProfile, isSourceCatalogProfileId } from './sourceCatalogProfiles.ts'
+import { getSourceStoneMaterial } from './sourceStoneMaterials.ts'
 
 export interface ProjectSpecRow {
   label: string
@@ -34,6 +36,20 @@ function enabled(value: boolean): string {
   return value ? 'Да' : 'Нет'
 }
 
+function shapeName(shapeId: MemorialProject['steles'][number]['monument']['shape']): string {
+  if (isSourceCatalogProfileId(shapeId)) {
+    return `Каталог № ${getSourceCatalogProfile(shapeId).sourceModel}`
+  }
+  return catalogName(MONUMENT_SHAPES, shapeId)
+}
+
+function surfaceName(stele: MemorialProject['steles'][number]): string {
+  const code = stele.monument.sourceStoneCode
+  if (!code) return catalogName(MATERIALS, stele.monument.surfaceId)
+  const stone = getSourceStoneMaterial(code)
+  return `${stone.code} · ${stone.name}`
+}
+
 export function buildProjectSpecification(project: MemorialProject): ProjectSpecification {
   const visibleSteles = getVisibleSteles(project)
   const multi = visibleSteles.length > 1
@@ -56,13 +72,27 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
       {
         title: `Памятник${suffix}`,
         rows: [
-          { label: 'Форма', value: catalogName(MONUMENT_SHAPES, stele.monument.shape) },
+          { label: 'Форма', value: shapeName(stele.monument.shape) },
           { label: 'Исполнение', value: constructionNames[stele.monument.material] ?? stele.monument.material },
-          { label: 'Поверхность', value: catalogName(MATERIALS, stele.monument.surfaceId) },
+          { label: 'Поверхность', value: surfaceName(stele) },
           {
             label: 'Размеры',
             value: `${stele.monument.widthM.toFixed(3)} × ${stele.monument.heightM.toFixed(3)} × ${stele.monument.depthM.toFixed(3)} м`,
           },
+          ...(stele.monument.sourceStoneCode
+            ? (() => {
+                const stone = getSourceStoneMaterial(stele.monument.sourceStoneCode)
+                return [
+                  { label: 'Порода по каталогу', value: `${stone.code} · ${stone.name}` },
+                  {
+                    label: 'Источник характеристик',
+                    value: stone.sourceAuthority === 'documented'
+                      ? `Исходный каталог, стр. ${stone.sourcePage}`
+                      : 'Код есть в таблицах размеров; свойства в разделе пород не приведены',
+                  },
+                ] satisfies ProjectSpecRow[]
+              })()
+            : []),
           ...glassRows,
         ],
       },
@@ -83,7 +113,7 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
 
   const complexRows: ProjectSpecRow[] = [
     { label: 'Цоколь', value: project.plinth.enabled ? (project.plinth.materialId === 'gabbro' ? 'Чёрный габбро' : 'Серый гранит') : 'Нет' },
-    { label: 'Цветник', value: project.flowerBed.enabled ? (project.flowerBed.styleId === 'open-granite' ? 'Открытый гранитный' : 'Закрытый гранитный') : 'Нет' },
+    { label: 'Цветник', value: project.flowerBed.enabled ? catalogName(FLOWER_BED_STYLES, project.flowerBed.styleId) : 'Нет' },
     { label: 'Покрытие', value: project.paving.enabled ? catalogName(PAVING_STYLES, project.paving.styleId) : 'Нет' },
     { label: 'Бордюр', value: project.border.enabled ? catalogName(BORDER_STYLES, project.border.styleId) : 'Нет' },
     { label: 'Ограда', value: project.fence.enabled ? catalogName(FENCE_STYLES, project.fence.styleId) : 'Нет' },

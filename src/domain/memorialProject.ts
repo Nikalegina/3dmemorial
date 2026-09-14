@@ -5,6 +5,7 @@ import {
   type GlassSteleConfig,
 } from './glassMemorial.ts'
 import type { SourceCatalogProfileId } from './sourceCatalogProfileTypes.ts'
+import { normalizeSourceStoneCode, type SourceStoneCode } from './sourceStoneMaterials.ts'
 import type {
   BenchStyleId,
   BorderStyleId,
@@ -57,6 +58,7 @@ export interface MonumentConfig {
   shape: MonumentShape
   material: MonumentMaterial
   surfaceId: SurfaceMaterialId
+  sourceStoneCode?: SourceStoneCode
   widthM: number
   heightM: number
   depthM: number
@@ -266,6 +268,9 @@ function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele
     monument: {
       ...input.monument,
       surfaceId: normalizeSurface(input.monument.material, input.monument.surfaceId),
+      sourceStoneCode: input.monument.material === 'glass'
+        ? undefined
+        : (normalizeSourceStoneCode(input.monument.sourceStoneCode) ?? undefined),
       widthM: clamp(input.monument.widthM, 0.3, 2.5),
       heightM: clamp(input.monument.heightM, 0.5, 3),
       depthM: normalizedDepth,
