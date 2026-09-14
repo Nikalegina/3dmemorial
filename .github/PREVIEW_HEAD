@@ -1,4 +1,5 @@
-accepted_product_head=a98665dba5f5103d856d16509b1b7d8d0ececa11
+preview_product_head=fef5d814f21d770fb5dd2d72221fdb7e8868278b
+preview_product_state=GREEN_CI_STABLE_CANDIDATE
 preview_branch=public-preview-live
-preview_branch_head=2c7c96694655802a0372637fdb3b201b7502cded
-gate=18
+preview_branch_head=becec92956c494a65dae54f7f3509e8acd5f2987
+gate=19
