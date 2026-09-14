@@ -164,6 +164,7 @@ jobs:
           grep -q 'data-source-profile-id="ermis-105"' browser-artifacts/source-105-dom.html
           grep -q 'data-source-variant-index="0"' browser-artifacts/source-105-dom.html
           grep -q 'data-source-sku="CAT-105"' browser-artifacts/source-105-dom.html
+          grep -q 'data-selected-catalog-profile="ermis-105"' browser-artifacts/source-105-dom.html
           grep -q 'Каталог № 105' browser-artifacts/source-105-dom.html
           grep -q '900 × 400 × 70 мм' browser-artifacts/source-105-dom.html
           browser_screenshot "$SOURCE_105_URL" browser-artifacts/catalog-profile-105.png
@@ -174,6 +175,7 @@ jobs:
           grep -q 'data-source-profile-id="ermis-114"' browser-artifacts/source-114-dom.html
           grep -q 'data-source-variant-index="0"' browser-artifacts/source-114-dom.html
           grep -q 'data-source-sku="CAT-114"' browser-artifacts/source-114-dom.html
+          grep -q 'data-selected-catalog-profile="ermis-114"' browser-artifacts/source-114-dom.html
           grep -q 'Каталог № 114' browser-artifacts/source-114-dom.html
           grep -q '1000 × 500 × 50 мм' browser-artifacts/source-114-dom.html
           browser_screenshot "$SOURCE_114_URL" browser-artifacts/catalog-profile-114.png
