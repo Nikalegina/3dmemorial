@@ -1,5 +1,6 @@
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from './catalog.ts'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
+import { findStandardGlassSteleSize, GLASS_CLARITY_OPTIONS, GLASS_MOUNT_OPTIONS, GLASS_UV_PRINT_OPTIONS } from './glassMemorial.ts'
 import { getVisibleSteles, type MemorialProject } from './memorialProject.ts'
 
 export interface ProjectSpecRow {
@@ -38,6 +39,19 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
   const multi = visibleSteles.length > 1
   const steleSections = visibleSteles.flatMap((stele, index): ProjectSpecSection[] => {
     const suffix = multi ? ` ${index + 1}` : ''
+    const standardGlassSize = findStandardGlassSteleSize(stele.monument.widthM, stele.monument.heightM)
+    const glassRows: ProjectSpecRow[] = stele.monument.material === 'glass'
+      ? [
+          { label: 'Конструкция стекла', value: 'Закалённый триплекс' },
+          { label: 'Толщина стекла', value: stele.glass.thicknessMm === 12 ? '12 мм (6+6)' : '16 мм (8+8)' },
+          { label: 'Вид стекла', value: GLASS_CLARITY_OPTIONS.find((item) => item.id === stele.glass.clarity)?.name ?? stele.glass.clarity },
+          { label: 'Крепление', value: GLASS_MOUNT_OPTIONS.find((item) => item.id === stele.glass.mountType)?.name ?? stele.glass.mountType },
+          { label: 'УФ-печать', value: GLASS_UV_PRINT_OPTIONS.find((item) => item.id === stele.glass.uvPrintSides)?.name ?? `${stele.glass.uvPrintSides} сторона` },
+          { label: 'Минимальный отступ рисунка', value: `${stele.glass.printEdgeMarginMm} мм` },
+          { label: 'Типоразмер стеклянной стелы', value: standardGlassSize ? `${standardGlassSize.widthMm} × ${standardGlassSize.heightMm} мм` : 'Индивидуальный' },
+        ]
+      : []
+
     return [
       {
         title: `Памятник${suffix}`,
@@ -47,8 +61,9 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
           { label: 'Поверхность', value: catalogName(MATERIALS, stele.monument.surfaceId) },
           {
             label: 'Размеры',
-            value: `${stele.monument.widthM.toFixed(2)} × ${stele.monument.heightM.toFixed(2)} × ${stele.monument.depthM.toFixed(2)} м`,
+            value: `${stele.monument.widthM.toFixed(3)} × ${stele.monument.heightM.toFixed(3)} × ${stele.monument.depthM.toFixed(3)} м`,
           },
+          ...glassRows,
         ],
       },
       {

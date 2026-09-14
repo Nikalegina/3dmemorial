@@ -57,7 +57,7 @@ test('switching back to single preserves the secondary stele for reversible edit
 
 test('family layout guarantees three visible steles without changing schema version', () => {
   const project = withLayout(createDefaultProject(), 'family')
-  assert.equal(project.schemaVersion, 5)
+  assert.equal(project.schemaVersion, 6)
   assert.equal(project.layout.type, 'family')
   assert.equal(getVisibleSteles(project).length, 3)
   assert.equal(new Set(project.steles.map((stele) => stele.id)).size, project.steles.length)

@@ -10,13 +10,15 @@ import {
 
 test('default project has canonical schema version and one stele', () => {
   const project = createDefaultProject()
-  assert.equal(project.schemaVersion, 5)
+  assert.equal(project.schemaVersion, 6)
   assert.equal(project.layout.type, 'single')
   assert.equal(project.steles.length, 1)
   assert.equal(project.steles[0].monument.material, 'gabbro')
   assert.equal(project.steles[0].monument.surfaceId, 'gabbro-polished')
   assert.equal(project.steles[0].portrait.frame, 'oval')
   assert.equal(project.steles[0].portrait.size, 1)
+  assert.equal(project.steles[0].glass.thicknessMm, 12)
+  assert.equal(project.steles[0].glass.mountType, 'groove')
   assert.equal(project.border.enabled, false)
 })
 
@@ -39,7 +41,7 @@ test('normalization clamps unsafe stele dimensions and portrait transforms', () 
   assert.equal(normalized.layout.gapM, 0.8)
 })
 
-test('project serialization round-trips schema v5 paired composition', () => {
+test('project serialization round-trips schema v6 paired composition', () => {
   const source = withLayout(createDefaultProject(), 'paired')
   source.steles[0].monument.material = 'hybrid'
   source.steles[0].portrait.frame = 'full'
@@ -72,7 +74,7 @@ test('schema v3 migrates monument portrait and inscription into primary stele', 
     vase: { enabled: true, styleId: 'classic-vase', placement: 'pair' },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 5)
+  assert.equal(migrated.schemaVersion, 6)
   assert.equal(migrated.layout.type, 'single')
   assert.equal(migrated.steles.length, 1)
   assert.equal(migrated.steles[0].monument.shape, 'book')
@@ -96,11 +98,13 @@ test('schema v1 migrates to current project model', () => {
     fence: { enabled: false }, bench: { enabled: false }, table: { enabled: false }, vase: { enabled: false },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 5)
+  assert.equal(migrated.schemaVersion, 6)
   assert.equal(migrated.steles[0].monument.surfaceId, 'glass-clear')
   assert.equal(migrated.steles[0].portrait.zoom, 1)
   assert.equal(migrated.steles[0].portrait.frame, 'rectangle')
   assert.equal(migrated.steles[0].portrait.size, 1)
+  assert.equal(migrated.steles[0].monument.depthM, 0.012)
+  assert.equal(migrated.steles[0].glass.thicknessMm, 12)
   assert.equal(migrated.steles[0].inscription.enabled, true)
   assert.equal(migrated.paving.styleId, 'stone-grey')
   assert.equal(migrated.border.enabled, false)
@@ -118,7 +122,7 @@ test('schema v2 migrates managed complex components without losing enabled state
     fence: { enabled: true }, bench: { enabled: true }, table: { enabled: false }, vase: { enabled: true },
   }
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 5)
+  assert.equal(migrated.schemaVersion, 6)
   assert.equal(migrated.fence.enabled, true)
   assert.equal(migrated.fence.styleId, 'classic-black')
   assert.equal(migrated.bench.side, 'right')
@@ -126,11 +130,17 @@ test('schema v2 migrates managed complex components without losing enabled state
   assert.equal(migrated.vase.styleId, 'classic-vase')
 })
 
-test('surface is normalized to construction-compatible material per stele', () => {
+test('surface and physical depth are normalized to glass technical configuration', () => {
   const project = createDefaultProject()
   project.steles[0].monument.material = 'glass'
   project.steles[0].monument.surfaceId = 'gabbro-polished'
-  assert.equal(normalizeProject(project).steles[0].monument.surfaceId, 'glass-clear')
+  project.steles[0].monument.depthM = 0.09
+  project.steles[0].glass.thicknessMm = 16
+
+  const normalized = normalizeProject(project)
+  assert.equal(normalized.steles[0].monument.surfaceId, 'glass-clear')
+  assert.equal(normalized.steles[0].monument.depthM, 0.016)
+  assert.equal(normalized.steles[0].glass.thicknessMm, 16)
 })
 
 test('paired normalization guarantees a secondary stele', () => {
@@ -172,13 +182,37 @@ test('schema v4 migrates portrait layout fields without losing paired compositio
   }
 
   const migrated = parseProject(JSON.stringify(legacy))
-  assert.equal(migrated.schemaVersion, 5)
+  assert.equal(migrated.schemaVersion, 6)
   assert.equal(migrated.layout.type, 'paired')
   assert.equal(migrated.steles.length, 2)
   assert.equal(migrated.steles[0].portrait.frame, 'rectangle')
   assert.equal(migrated.steles[0].portrait.size, 1)
   assert.equal(migrated.steles[0].portrait.zoom, 1.25)
+  assert.equal(migrated.steles[0].monument.depthM, 0.012)
+  assert.equal(migrated.steles[0].glass.printEdgeMarginMm, 10)
   assert.equal(migrated.steles[1].inscription.name, 'ВТОРОЙ')
+})
+
+test('schema v5 migrates glass projects to the technical glass model', () => {
+  const source = createDefaultProject()
+  const legacy = JSON.parse(JSON.stringify(source))
+  legacy.schemaVersion = 5
+  legacy.steles = legacy.steles.map((stele: Record<string, unknown>) => {
+    const copy = { ...stele }
+    delete copy.glass
+    return copy
+  })
+  legacy.steles[0].monument.material = 'glass'
+  legacy.steles[0].monument.surfaceId = 'glass-clear'
+  legacy.steles[0].monument.depthM = 0.09
+
+  const migrated = parseProject(JSON.stringify(legacy))
+  assert.equal(migrated.schemaVersion, 6)
+  assert.equal(migrated.steles[0].glass.thicknessMm, 12)
+  assert.equal(migrated.steles[0].glass.mountType, 'groove')
+  assert.equal(migrated.steles[0].glass.uvPrintSides, 1)
+  assert.equal(migrated.steles[0].glass.printEdgeMarginMm, 10)
+  assert.equal(migrated.steles[0].monument.depthM, 0.012)
 })
 
 test('unsupported schema is rejected', () => {

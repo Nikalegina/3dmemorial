@@ -15,6 +15,8 @@ test('catalog entry starts a validated paired preset and keeps source SKU attrib
   assert.equal(result.project.layout.type, 'paired')
   assert.equal(result.project.steles[0].monument.material, 'glass')
   assert.equal(result.project.steles[1].monument.material, 'glass')
+  assert.equal(result.project.steles[0].monument.depthM, 0.012)
+  assert.equal(result.project.steles[0].glass.thicknessMm, 12)
 })
 
 test('invalid preset and unsafe SKU fail closed and do not override local project', () => {

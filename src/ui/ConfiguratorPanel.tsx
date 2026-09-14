@@ -3,6 +3,17 @@ import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_FRAMES, PORTRAIT_MODES } from '../
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
 import {
+  findStandardGlassSteleSize,
+  GLASS_CLARITY_OPTIONS,
+  GLASS_MOUNT_OPTIONS,
+  GLASS_STELE_STANDARD_SIZES,
+  GLASS_UV_PRINT_OPTIONS,
+  type GlassClarity,
+  type GlassMountType,
+  type GlassSteleThicknessMm,
+  type GlassUvPrintSides,
+} from '../domain/glassMemorial'
+import {
   addFamilyStele,
   FAMILY_UI_MAX_STELES,
   getVisibleSteles,
@@ -69,6 +80,7 @@ export function ConfiguratorPanel({
   const safeIndex = Math.min(activeSteleIndex, Math.max(0, visibleSteles.length - 1))
   const activeStele = visibleSteles[safeIndex] ?? project.steles[0]
   const diagnostics = validateProjectCompatibility(project)
+  const standardGlassSize = findStandardGlassSteleSize(activeStele.monument.widthM, activeStele.monument.heightM)
 
   useEffect(() => {
     if (activeSteleIndex !== safeIndex) setActiveSteleIndex(safeIndex)
@@ -91,6 +103,12 @@ export function ConfiguratorPanel({
     updateStele(activeStele.id, (stele) => ({
       ...stele,
       portrait: { ...stele.portrait, ...patch },
+    }))
+
+  const patchGlass = (patch: Partial<MemorialStele['glass']>) =>
+    updateStele(activeStele.id, (stele) => ({
+      ...stele,
+      glass: { ...stele.glass, ...patch },
     }))
 
   const patchInscription = (patch: Partial<MemorialStele['inscription']>) =>
@@ -141,7 +159,32 @@ export function ConfiguratorPanel({
 
   const setConstruction = (material: MonumentMaterial) => {
     const surfaceId: SurfaceMaterialId = material === 'glass' ? 'glass-clear' : 'gabbro-polished'
-    patchMonument({ material, surfaceId })
+    updateStele(activeStele.id, (stele) => ({
+      ...stele,
+      monument: {
+        ...stele.monument,
+        material,
+        surfaceId,
+        depthM: material === 'glass'
+          ? stele.glass.thicknessMm / 1000
+          : stele.monument.material === 'glass'
+            ? 0.09
+            : stele.monument.depthM,
+      },
+    }))
+  }
+
+  const setGlassThickness = (thicknessMm: GlassSteleThicknessMm) =>
+    updateStele(activeStele.id, (stele) => ({
+      ...stele,
+      monument: { ...stele.monument, depthM: thicknessMm / 1000 },
+      glass: { ...stele.glass, thicknessMm },
+    }))
+
+  const applyGlassStandardSize = (id: string) => {
+    const size = GLASS_STELE_STANDARD_SIZES.find((item) => item.id === id)
+    if (!size) return
+    patchMonument({ widthM: size.widthMm / 1000, heightM: size.heightMm / 1000 })
   }
 
   const applyPreset = (create: () => MemorialProject) => {
@@ -276,8 +319,59 @@ export function ConfiguratorPanel({
         </label>
         {numberField('Ширина, м', activeStele.monument.widthM, 0.3, 2.5, 0.05, (v) => patchMonument({ widthM: v }))}
         {numberField('Высота, м', activeStele.monument.heightM, 0.5, 3, 0.05, (v) => patchMonument({ heightM: v }))}
-        {numberField('Толщина, м', activeStele.monument.depthM, 0.04, 0.4, 0.01, (v) => patchMonument({ depthM: v }))}
+        {activeStele.monument.material === 'glass'
+          ? <p className="field-hint">Толщина стеклянной стелы задаётся в технических параметрах ниже.</p>
+          : numberField('Толщина, м', activeStele.monument.depthM, 0.04, 0.4, 0.01, (v) => patchMonument({ depthM: v }))}
       </section>
+
+      {activeStele.monument.material === 'glass' && (
+        <section className="glass-tech">
+          <h2>Технические параметры стекла</h2>
+          <p className="field-hint">Закалённый триплекс с полноцветной УФ-печатью внутри стеклянного пакета.</p>
+
+          <label className="field">
+            <span>Типоразмер стелы</span>
+            <select value={standardGlassSize?.id ?? 'custom'} onChange={(e) => applyGlassStandardSize(e.target.value)}>
+              <option value="custom">Индивидуальный размер</option>
+              {GLASS_STELE_STANDARD_SIZES.map((size) => (
+                <option key={size.id} value={size.id}>{size.widthMm} × {size.heightMm} мм</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Толщина триплекса</span>
+            <select value={activeStele.glass.thicknessMm} onChange={(e) => setGlassThickness(Number(e.target.value) as GlassSteleThicknessMm)}>
+              <option value={12}>12 мм (6+6)</option>
+              <option value={16}>16 мм (8+8)</option>
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Вид стекла</span>
+            <select value={activeStele.glass.clarity} onChange={(e) => patchGlass({ clarity: e.target.value as GlassClarity })}>
+              {GLASS_CLARITY_OPTIONS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>Монтаж стелы</span>
+            <select value={activeStele.glass.mountType} onChange={(e) => patchGlass({ mountType: e.target.value as GlassMountType })}>
+              {GLASS_MOUNT_OPTIONS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+
+          <label className="field">
+            <span>УФ-печать</span>
+            <select value={activeStele.glass.uvPrintSides} onChange={(e) => patchGlass({ uvPrintSides: Number(e.target.value) as GlassUvPrintSides })}>
+              {GLASS_UV_PRINT_OPTIONS.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+
+          {numberField('Отступ рисунка, мм', activeStele.glass.printEdgeMarginMm, 10, 80, 1, (v) => patchGlass({ printEdgeMarginMm: v }))}
+          <p className="field-hint">Минимальный технологический отступ рисунка от края панели — 10 мм. Финальные отверстия, крепления и допуски подтверждаются после конструкторской проверки.</p>
+        </section>
+      )}
 
       <section>
         <h2>Портрет</h2>

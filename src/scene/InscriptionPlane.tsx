@@ -65,7 +65,13 @@ export function InscriptionPlane({ stele, z }: { stele: MemorialStele; z: number
   return (
     <mesh position={[0, heightM * 0.245, z]} renderOrder={5}>
       <planeGeometry args={[widthM * 0.86, heightM * 0.34]} />
-      <meshBasicMaterial map={texture} transparent toneMapped={false} depthWrite={false} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        toneMapped={false}
+        depthWrite={false}
+        depthTest={stele.monument.material !== 'glass'}
+      />
     </mesh>
   )
 }

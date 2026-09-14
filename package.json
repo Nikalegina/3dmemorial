@@ -12,7 +12,7 @@
     "build": "tsc -b && vite build",
     "check": "tsc -b",
     "test": "npm run test:domain && npm run validate:assets && npm run check:tests",
-    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/share.node.test.ts tests/projectSpec.node.test.ts tests/geometry.node.test.ts tests/multiStele.node.test.ts tests/catalogEntry.node.test.ts tests/hostBridge.node.test.ts",
+    "test:domain": "node --experimental-strip-types --test tests/domain.node.test.ts tests/catalog.node.test.ts tests/componentCatalog.node.test.ts tests/glassMemorial.node.test.ts tests/share.node.test.ts tests/projectSpec.node.test.ts tests/geometry.node.test.ts tests/multiStele.node.test.ts tests/catalogEntry.node.test.ts tests/hostBridge.node.test.ts",
     "validate:assets": "node scripts/validate-asset-registry.mjs",
     "check:tests": "tsc -p tsconfig.tests.json --noEmit"
   },

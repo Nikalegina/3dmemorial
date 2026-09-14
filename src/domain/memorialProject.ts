@@ -1,3 +1,9 @@
+import {
+  createDefaultGlassSteleConfig,
+  glassThicknessMeters,
+  normalizeGlassSteleConfig,
+  type GlassSteleConfig,
+} from './glassMemorial.ts'
 import type {
   BenchStyleId,
   BorderStyleId,
@@ -73,11 +79,12 @@ export interface MemorialStele {
   id: string
   monument: MonumentConfig
   portrait: PortraitConfig
+  glass: GlassSteleConfig
   inscription: InscriptionConfig
 }
 
 export interface MemorialProject {
-  schemaVersion: 5
+  schemaVersion: 6
   projectId: string
   layout: {
     type: LayoutType
@@ -171,7 +178,30 @@ interface LegacyProjectV4 {
   vase: MemorialProject['vase']
 }
 
-export const PROJECT_SCHEMA_VERSION = 5 as const
+interface LegacyMemorialSteleV5 {
+  id: string
+  monument: MonumentConfig
+  portrait: PortraitConfig
+  inscription: InscriptionConfig
+}
+
+interface LegacyProjectV5 {
+  schemaVersion: 5
+  projectId: string
+  layout: MemorialProject['layout']
+  steles: LegacyMemorialSteleV5[]
+  plot: MemorialProject['plot']
+  flowerBed: MemorialProject['flowerBed']
+  plinth: MemorialProject['plinth']
+  paving: MemorialProject['paving']
+  border: MemorialProject['border']
+  fence: MemorialProject['fence']
+  bench: MemorialProject['bench']
+  table: MemorialProject['table']
+  vase: MemorialProject['vase']
+}
+
+export const PROJECT_SCHEMA_VERSION = 6 as const
 export const MAX_SUPPORTED_STELES = 6
 export const FAMILY_UI_MAX_STELES = 4
 
@@ -202,6 +232,7 @@ export function createDefaultStele(id = 'primary'): MemorialStele {
       depthM: 0.09,
     },
     portrait: { mode: 'color', frame: 'oval', size: 1, enabled: true, offsetX: 0, offsetY: 0, zoom: 1 },
+    glass: createDefaultGlassSteleConfig(),
     inscription: {
       enabled: true,
       name: 'ИМЯ ФАМИЛИЯ',
@@ -220,6 +251,11 @@ function createFamilyCompanionStele(id: string, index: number): MemorialStele {
 
 function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele {
   const id = typeof input.id === 'string' && input.id.trim() ? input.id.trim() : fallbackId
+  const glass = normalizeGlassSteleConfig(input.glass)
+  const normalizedDepth = input.monument.material === 'glass'
+    ? glassThicknessMeters(glass)
+    : clamp(input.monument.depthM, 0.04, 0.4)
+
   return {
     ...input,
     id,
@@ -228,7 +264,7 @@ function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele
       surfaceId: normalizeSurface(input.monument.material, input.monument.surfaceId),
       widthM: clamp(input.monument.widthM, 0.3, 2.5),
       heightM: clamp(input.monument.heightM, 0.5, 3),
-      depthM: clamp(input.monument.depthM, 0.04, 0.4),
+      depthM: normalizedDepth,
     },
     portrait: {
       ...input.portrait,
@@ -238,6 +274,7 @@ function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele
       offsetY: clamp(input.portrait.offsetY, -1, 1),
       zoom: clamp(input.portrait.zoom, 1, 3),
     },
+    glass,
   }
 }
 
@@ -391,6 +428,17 @@ export function removeFamilyStele(project: MemorialProject, steleId: string): Me
   })
 }
 
+export function migrateProjectV5(input: LegacyProjectV5): MemorialProject {
+  return normalizeProject({
+    ...input,
+    schemaVersion: PROJECT_SCHEMA_VERSION,
+    steles: input.steles.map((stele) => ({
+      ...stele,
+      glass: createDefaultGlassSteleConfig(),
+    })),
+  })
+}
+
 export function migrateProjectV4(input: LegacyProjectV4): MemorialProject {
   return normalizeProject({
     ...input,
@@ -402,6 +450,7 @@ export function migrateProjectV4(input: LegacyProjectV4): MemorialProject {
         frame: 'rectangle',
         size: 1,
       },
+      glass: createDefaultGlassSteleConfig(),
     })),
   })
 }
@@ -415,6 +464,7 @@ export function migrateProjectV3(input: LegacyProjectV3): MemorialProject {
       id: 'primary',
       monument: input.monument,
       portrait: { ...input.portrait, frame: 'rectangle', size: 1 },
+      glass: createDefaultGlassSteleConfig(),
       inscription: input.inscription,
     }],
     plot: input.plot,
@@ -478,6 +528,7 @@ export function parseProject(raw: string): MemorialProject {
   if (parsed.schemaVersion === 2) return migrateProjectV2(parsed as LegacyProjectV2)
   if (parsed.schemaVersion === 3) return migrateProjectV3(parsed as LegacyProjectV3)
   if (parsed.schemaVersion === 4) return migrateProjectV4(parsed as LegacyProjectV4)
+  if (parsed.schemaVersion === 5) return migrateProjectV5(parsed as LegacyProjectV5)
   if (parsed.schemaVersion !== PROJECT_SCHEMA_VERSION) {
     throw new Error(`Unsupported project schema: ${String(parsed.schemaVersion)}`)
   }

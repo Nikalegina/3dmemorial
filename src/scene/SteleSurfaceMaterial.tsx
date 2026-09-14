@@ -107,14 +107,20 @@ function StoneMaterial({ definition }: { definition: MaterialDefinition }) {
   )
 }
 
-export function SteleSurfaceMaterial({ definition }: { definition: MaterialDefinition }) {
+export function SteleSurfaceMaterial({
+  definition,
+  physicalThickness,
+}: {
+  definition: MaterialDefinition
+  physicalThickness?: number
+}) {
   if (definition.kind === 'glass') {
     return (
       <meshPhysicalMaterial
         color={definition.color}
         roughness={definition.roughness}
         transmission={Math.min(1, definition.transmission ?? 0.95)}
-        thickness={definition.thickness ?? 0.08}
+        thickness={physicalThickness ?? definition.thickness ?? 0.08}
         ior={definition.ior ?? 1.45}
         transparent
         opacity={1}

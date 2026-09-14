@@ -171,6 +171,7 @@ export function PortraitPlane({
         opacity={url ? 1 : 0.78}
         toneMapped={false}
         depthWrite={false}
+        depthTest={stele.monument.material !== 'glass'}
       />
     </mesh>
   )
