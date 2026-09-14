@@ -17,7 +17,7 @@ test('quote handoff contains configuration and source attribution but no portrai
     project,
     'https://example.test/constructor?project=encoded',
     'catalog',
-    { presetId: 'paired-glass', sourceSku: 'KM-PAIR-001' },
+    { presetId: 'paired-glass', catalogProductId: null, sourceSku: 'KM-PAIR-001' },
   )
 
   assert.equal(envelope.channel, HOST_BRIDGE_CHANNEL)
@@ -25,6 +25,7 @@ test('quote handoff contains configuration and source attribution but no portrai
   assert.equal(envelope.type, 'REQUEST_QUOTE')
   assert.equal(envelope.projectSchemaVersion, 6)
   assert.equal(envelope.project.steles.length, 2)
+  assert.equal(envelope.source.catalogProductId, null)
   assert.equal(envelope.source.sourceSku, 'KM-PAIR-001')
   assert.deepEqual(envelope.privacy, {
     includesPortraitBinary: false,
