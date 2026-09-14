@@ -38,3 +38,16 @@ test('project specification keeps inscription placeholders explicit', () => {
   const inscription = spec.sections.find((section) => section.title === 'Портрет и надпись')
   assert.equal(inscription?.rows.find((row) => row.label === 'Эпитафия')?.value, '—')
 })
+
+
+test('project specification includes personalization choices', () => {
+  const project = createDefaultProject()
+  project.steles[0].portrait.frame = 'rounded-rect'
+  project.steles[0].inscription.fontId = 'modern'
+  project.steles[0].inscription.symbolId = 'crescent'
+  const spec = buildProjectSpecification(project)
+  const section = spec.sections.find((item) => item.title === 'Портрет и надпись')
+  assert.equal(section?.rows.find((row) => row.label === 'Форма портрета')?.value, 'Скруглённый прямоугольник')
+  assert.equal(section?.rows.find((row) => row.label === 'Шрифт')?.value, 'Современный')
+  assert.equal(section?.rows.find((row) => row.label === 'Символ')?.value, 'Полумесяц')
+})

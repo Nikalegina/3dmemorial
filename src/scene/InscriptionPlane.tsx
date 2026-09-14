@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as THREE from 'three'
+import { getInscriptionFont } from '../domain/personalizationCatalog'
 import type { MemorialStele } from '../domain/memorialProject'
 
 function useInscriptionTexture(stele: MemorialStele) {
@@ -22,6 +23,7 @@ function useInscriptionTexture(stele: MemorialStele) {
     const context = canvas.getContext('2d')
     if (!context) return
 
+    const font = getInscriptionFont(inscription.fontId)
     context.clearRect(0, 0, canvas.width, canvas.height)
     const isGlass = material === 'glass'
     context.fillStyle = isGlass ? '#151a1b' : '#f3f2ed'
@@ -30,15 +32,15 @@ function useInscriptionTexture(stele: MemorialStele) {
     context.shadowColor = isGlass ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.45)'
     context.shadowBlur = 5
 
-    context.font = '700 108px Georgia, serif'
+    context.font = `700 108px ${font.cssFamily}`
     context.fillText(inscription.name || ' ', canvas.width / 2, 230, 1380)
 
     context.shadowBlur = 3
-    context.font = '600 72px Georgia, serif'
+    context.font = `600 72px ${font.cssFamily}`
     context.fillText(inscription.dates || ' ', canvas.width / 2, 405, 1260)
 
     if (inscription.epitaph.trim()) {
-      context.font = 'italic 48px Georgia, serif'
+      context.font = `italic 48px ${font.cssFamily}`
       context.globalAlpha = 0.92
       context.fillText(inscription.epitaph, canvas.width / 2, 605, 1320)
     }
@@ -51,7 +53,15 @@ function useInscriptionTexture(stele: MemorialStele) {
       current?.dispose()
       return next
     })
-  }, [inscription.dates, inscription.enabled, inscription.epitaph, inscription.name, material, stele.id])
+  }, [
+    inscription.dates,
+    inscription.enabled,
+    inscription.epitaph,
+    inscription.fontId,
+    inscription.name,
+    material,
+    stele.id,
+  ])
 
   useEffect(() => () => texture?.dispose(), [texture])
   return texture

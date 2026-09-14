@@ -2,6 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from '../domain/catalog'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from '../domain/componentCatalog'
 import { validateProjectCompatibility } from '../domain/compatibility'
+import { INSCRIPTION_FONTS, MEMORIAL_SYMBOLS, PORTRAIT_FRAMES } from '../domain/personalizationCatalog'
 import {
   createDefaultStele,
   getVisibleSteles,
@@ -9,8 +10,11 @@ import {
   withLayout,
   type MemorialProject,
   type MemorialStele,
+  type InscriptionFontId,
+  type MemorialSymbolId,
   type MonumentMaterial,
   type MonumentShape,
+  type PortraitFrameId,
   type PortraitMode,
   type SurfaceMaterialId,
 } from '../domain/memorialProject'
@@ -157,7 +161,7 @@ export function ConfiguratorPanel({
     <aside className="panel">
       <div className="brand">
         <strong>КРЫМ МОНУМЕНТ</strong>
-        <span>Memorial 3D Studio / Gate 5</span>
+        <span>Memorial 3D Studio / Gate 8</span>
       </div>
 
       <section>
@@ -262,6 +266,12 @@ export function ConfiguratorPanel({
             {PORTRAIT_MODES.map((mode) => <option value={mode.id} key={mode.id}>{mode.name}</option>)}
           </select>
         </label>
+        <label className="field">
+          <span>Форма</span>
+          <select value={activeStele.portrait.frame} onChange={(e) => patchPortrait({ frame: e.target.value as PortraitFrameId })}>
+            {PORTRAIT_FRAMES.map((frame) => <option value={frame.id} key={frame.id}>{frame.name}</option>)}
+          </select>
+        </label>
         <label className="upload">
           Загрузить фото
           <input
@@ -278,6 +288,18 @@ export function ConfiguratorPanel({
 
       <section>
         <h2>Надпись</h2>
+        <label className="field">
+          <span>Шрифт</span>
+          <select value={activeStele.inscription.fontId} onChange={(e) => patchInscription({ fontId: e.target.value as InscriptionFontId })}>
+            {INSCRIPTION_FONTS.map((font) => <option value={font.id} key={font.id}>{font.name}</option>)}
+          </select>
+        </label>
+        <label className="field">
+          <span>Символ</span>
+          <select value={activeStele.inscription.symbolId} onChange={(e) => patchInscription({ symbolId: e.target.value as MemorialSymbolId })}>
+            {MEMORIAL_SYMBOLS.map((symbol) => <option value={symbol.id} key={symbol.id}>{symbol.name}</option>)}
+          </select>
+        </label>
         <label className="text-field">
           <span>Имя</span>
           <input value={activeStele.inscription.name} maxLength={80} onChange={(e) => patchInscription({ name: e.target.value })} />

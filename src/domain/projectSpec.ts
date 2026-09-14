@@ -1,6 +1,7 @@
 import { MATERIALS, MONUMENT_SHAPES, PORTRAIT_MODES } from './catalog.ts'
 import { BENCH_STYLES, BORDER_STYLES, FENCE_STYLES, PAVING_STYLES, TABLE_STYLES, VASE_STYLES } from './componentCatalog.ts'
 import { getVisibleSteles, type MemorialProject } from './memorialProject.ts'
+import { getInscriptionFont, getMemorialSymbolName, getPortraitFrameName } from './personalizationCatalog.ts'
 
 export interface ProjectSpecRow {
   label: string
@@ -56,9 +57,12 @@ export function buildProjectSpecification(project: MemorialProject): ProjectSpec
         rows: [
           { label: 'Портрет', value: enabled(stele.portrait.enabled) },
           { label: 'Режим портрета', value: catalogName(PORTRAIT_MODES, stele.portrait.mode) },
+          { label: 'Форма портрета', value: getPortraitFrameName(stele.portrait.frame) },
           { label: 'Имя', value: stele.inscription.name || '—' },
           { label: 'Даты', value: stele.inscription.dates || '—' },
           { label: 'Эпитафия', value: stele.inscription.epitaph || '—' },
+          { label: 'Шрифт', value: getInscriptionFont(stele.inscription.fontId).name },
+          { label: 'Символ', value: getMemorialSymbolName(stele.inscription.symbolId) },
         ],
       },
     ]

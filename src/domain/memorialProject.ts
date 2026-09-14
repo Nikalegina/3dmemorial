@@ -40,6 +40,9 @@ export type SurfaceMaterialId =
   | 'glass-smoke'
   | 'glass-bronze'
 export type PortraitMode = 'color' | 'bw' | 'engraving'
+export type PortraitFrameId = 'oval' | 'rounded-rect' | 'rectangle'
+export type InscriptionFontId = 'classic' | 'roman' | 'modern'
+export type MemorialSymbolId = 'none' | 'orthodox-cross' | 'latin-cross' | 'crescent'
 export type LayoutType = 'single' | 'paired' | 'family'
 
 export interface MonumentConfig {
@@ -53,6 +56,7 @@ export interface MonumentConfig {
 
 export interface PortraitConfig {
   mode: PortraitMode
+  frame: PortraitFrameId
   enabled: boolean
   offsetX: number
   offsetY: number
@@ -64,6 +68,8 @@ export interface InscriptionConfig {
   name: string
   dates: string
   epitaph: string
+  fontId: InscriptionFontId
+  symbolId: MemorialSymbolId
 }
 
 export interface MemorialStele {
@@ -74,7 +80,7 @@ export interface MemorialStele {
 }
 
 export interface MemorialProject {
-  schemaVersion: 4
+  schemaVersion: 5
   projectId: string
   layout: {
     type: LayoutType
@@ -94,6 +100,9 @@ export interface MemorialProject {
   table: { enabled: boolean; styleId: TableStyleId; side: FurnitureSide }
   vase: { enabled: boolean; styleId: VaseStyleId; placement: VasePlacement }
 }
+
+type LegacyPortrait = Omit<PortraitConfig, 'frame'>
+type LegacyInscription = Omit<InscriptionConfig, 'fontId' | 'symbolId'>
 
 interface LegacyProjectV1 {
   schemaVersion: 1
@@ -115,8 +124,8 @@ interface LegacyProjectV2 {
   projectId: string
   plot: MemorialProject['plot']
   monument: MonumentConfig
-  portrait: PortraitConfig
-  inscription: InscriptionConfig
+  portrait: LegacyPortrait
+  inscription: LegacyInscription
   flowerBed: { enabled: boolean }
   plinth: { enabled: boolean }
   paving: { enabled: boolean }
@@ -131,8 +140,8 @@ interface LegacyProjectV3 {
   projectId: string
   plot: MemorialProject['plot']
   monument: MonumentConfig
-  portrait: PortraitConfig
-  inscription: InscriptionConfig
+  portrait: LegacyPortrait
+  inscription: LegacyInscription
   flowerBed: MemorialProject['flowerBed']
   plinth: MemorialProject['plinth']
   paving: MemorialProject['paving']
@@ -143,8 +152,33 @@ interface LegacyProjectV3 {
   vase: MemorialProject['vase']
 }
 
-export const PROJECT_SCHEMA_VERSION = 4 as const
+interface LegacyProjectV4 {
+  schemaVersion: 4
+  projectId: string
+  layout: MemorialProject['layout']
+  steles: Array<{
+    id: string
+    monument: MonumentConfig
+    portrait: LegacyPortrait
+    inscription: LegacyInscription
+  }>
+  plot: MemorialProject['plot']
+  flowerBed: MemorialProject['flowerBed']
+  plinth: MemorialProject['plinth']
+  paving: MemorialProject['paving']
+  border: MemorialProject['border']
+  fence: MemorialProject['fence']
+  bench: MemorialProject['bench']
+  table: MemorialProject['table']
+  vase: MemorialProject['vase']
+}
+
+export const PROJECT_SCHEMA_VERSION = 5 as const
 export const MAX_SUPPORTED_STELES = 6
+
+const PORTRAIT_FRAME_IDS = new Set<PortraitFrameId>(['oval', 'rounded-rect', 'rectangle'])
+const INSCRIPTION_FONT_IDS = new Set<InscriptionFontId>(['classic', 'roman', 'modern'])
+const MEMORIAL_SYMBOL_IDS = new Set<MemorialSymbolId>(['none', 'orthodox-cross', 'latin-cross', 'crescent'])
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, Number.isFinite(value) ? value : min))
@@ -172,12 +206,21 @@ export function createDefaultStele(id = 'primary'): MemorialStele {
       heightM: 1.25,
       depthM: 0.09,
     },
-    portrait: { mode: 'color', enabled: true, offsetX: 0, offsetY: 0, zoom: 1 },
+    portrait: {
+      mode: 'color',
+      frame: 'oval',
+      enabled: true,
+      offsetX: 0,
+      offsetY: 0,
+      zoom: 1,
+    },
     inscription: {
       enabled: true,
       name: 'ИМЯ ФАМИЛИЯ',
       dates: '19XX — 20XX',
       epitaph: '',
+      fontId: 'classic',
+      symbolId: 'none',
     },
   }
 }
@@ -196,9 +239,15 @@ function normalizeStele(input: MemorialStele, fallbackId: string): MemorialStele
     },
     portrait: {
       ...input.portrait,
+      frame: PORTRAIT_FRAME_IDS.has(input.portrait.frame) ? input.portrait.frame : 'oval',
       offsetX: clamp(input.portrait.offsetX, -1, 1),
       offsetY: clamp(input.portrait.offsetY, -1, 1),
       zoom: clamp(input.portrait.zoom, 1, 3),
+    },
+    inscription: {
+      ...input.inscription,
+      fontId: INSCRIPTION_FONT_IDS.has(input.inscription.fontId) ? input.inscription.fontId : 'classic',
+      symbolId: MEMORIAL_SYMBOL_IDS.has(input.inscription.symbolId) ? input.inscription.symbolId : 'none',
     },
   }
 }
@@ -232,6 +281,20 @@ function defaultManagedComponents(input: {
     bench: { enabled: input.bench.enabled, styleId: 'wood-classic' as const, side: 'right' as const },
     table: { enabled: input.table.enabled, styleId: 'round-granite' as const, side: 'left' as const },
     vase: { enabled: input.vase.enabled, styleId: 'classic-vase' as const, placement: 'right' as const },
+  }
+}
+
+function personalizeLegacyStele(
+  id: string,
+  monument: MonumentConfig,
+  portrait: LegacyPortrait,
+  inscription: LegacyInscription,
+): MemorialStele {
+  return {
+    id,
+    monument,
+    portrait: { ...portrait, frame: 'oval' },
+    inscription: { ...inscription, fontId: 'classic', symbolId: 'none' },
   }
 }
 
@@ -319,17 +382,27 @@ export function withLayout(project: MemorialProject, type: LayoutType): Memorial
   return normalizeProject(next)
 }
 
+export function migrateProjectV4(input: LegacyProjectV4): MemorialProject {
+  return normalizeProject({
+    ...input,
+    schemaVersion: PROJECT_SCHEMA_VERSION,
+    steles: input.steles.map((stele, index) =>
+      personalizeLegacyStele(
+        stele.id || `stele-${index + 1}`,
+        stele.monument,
+        stele.portrait,
+        stele.inscription,
+      ),
+    ),
+  })
+}
+
 export function migrateProjectV3(input: LegacyProjectV3): MemorialProject {
   return normalizeProject({
     schemaVersion: PROJECT_SCHEMA_VERSION,
     projectId: input.projectId,
     layout: { type: 'single', gapM: 0.16 },
-    steles: [{
-      id: 'primary',
-      monument: input.monument,
-      portrait: input.portrait,
-      inscription: input.inscription,
-    }],
+    steles: [personalizeLegacyStele('primary', input.monument, input.portrait, input.inscription)],
     plot: input.plot,
     flowerBed: input.flowerBed,
     plinth: input.plinth,
@@ -390,6 +463,7 @@ export function parseProject(raw: string): MemorialProject {
   if (parsed.schemaVersion === 1) return migrateProjectV1(parsed as LegacyProjectV1)
   if (parsed.schemaVersion === 2) return migrateProjectV2(parsed as LegacyProjectV2)
   if (parsed.schemaVersion === 3) return migrateProjectV3(parsed as LegacyProjectV3)
+  if (parsed.schemaVersion === 4) return migrateProjectV4(parsed as LegacyProjectV4)
   if (parsed.schemaVersion !== PROJECT_SCHEMA_VERSION) {
     throw new Error(`Unsupported project schema: ${String(parsed.schemaVersion)}`)
   }
